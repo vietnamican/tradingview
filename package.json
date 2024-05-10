@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@mathieuc/tradingview": "github:Mathieu2301/TradingView-API",
+    "ccxt": "^4.3.18",
+    "delay": "^6.0.0",
+    "moment": "^2.30.1"
+  }
+}

@@ -1,0 +1,1 @@
+npm i github:Mathieu2301/TradingView-API
