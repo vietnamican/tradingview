@@ -1,12 +1,7 @@
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-// const System = require("./System");
-const System = require("./SystemCost");
-// const delay = require("delay");
+const System = require("./Systems/System15m");
 
-/**
- * This example creates a BTCEUR daily chart
- */
 const config = {
     "tvsessionid": "fiob6mu4x5kgv5fs9q4wg1ecx3p2we8a",
     "tvsession_signature": "v2:+gmH/6w69h3uhb2unzMH6N4rp9gffm0TtQ2Yr8eBjjg=",
@@ -86,8 +81,6 @@ const systems = [];
 
 async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str) {
     const chart = new tvclient.Session.Chart();
-    // const symbol_strp = symbol_str + ".P"
-    // console.log(symbol_strp)
     chart.setMarket(`${exchange_str}:${symbol_str}.P`, {
         timeframe: timeframe_str,
     });
