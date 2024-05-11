@@ -7,6 +7,12 @@ const STAND = 2;
 const LIQUID = 1;
 const FREE = 2;
 
+async function loadDelay() {
+    delay = null;
+    await import("delay").then((val) => { delay = val.default });
+    return delay;
+}
+
 module.exports = class TradingSystem {
     exchange_str = "";
     exchange = null;
@@ -26,9 +32,11 @@ module.exports = class TradingSystem {
     price = 0;
     precision = 1;
     loop = [1, 2, 3];
+    finished = false;
 
 
-    constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators) {
+    // mode: forward or replay
+    constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, mode = "forward") {
         this.exchange_str = exchange_str;
         this.exchange = exchange;
         this.chart = chart;
@@ -41,6 +49,43 @@ module.exports = class TradingSystem {
             this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
         });
     }
+
+    async step() {
+        if (this.finished) return;
+        await this.chart.replayStep(1);
+        await this.delay(100);
+        console.log('Replay step');
+        await step();
+    }
+
+    async startReplay() {
+        const chart = this.chart;
+        this.delay = await loadDelay();
+        chart.onReplayPoint(() => {
+            if (!chart.periods[0]) return;
+
+            if (chart.periods[0].time != this.lasttime) {
+                this.lasttime = chart.periods[0].time
+                console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${this.tvtime} Open:${this.tvopen} High:${this.tvhigh} Low:${this.tvlow} Close:${this.tvclose} Volume:${this.tvvolume}`);
+                this.trade();
+            }
+            else {
+                this.tvtime = chart.periods[0].time
+                this.tvopen = chart.periods[0].open
+                this.tvhigh = chart.periods[0].max
+                this.tvlow = chart.periods[0].min
+                this.tvclose = chart.periods[0].close
+                this.tvvolume = chart.periods[0].volume
+            }
+        });
+        chart.onReplayEnd(async () => {
+            console.log('Replay end');
+            this.finished = true;
+        });
+        await this.step();
+        // chart.replayStart();
+    }
+
     start() {
         const chart = this.chart;
         chart.onUpdate(() => { // When price changes
@@ -172,7 +217,7 @@ module.exports = class TradingSystem {
     async buy() {
         const amount = 1000; // 100 USDT
         const price = this.tvclose;
-        const qty = this.round(amount/price);
+        const qty = this.round(amount / price);
         const params = {
             "category": "linear",
             "side": "Buy",
@@ -233,7 +278,7 @@ module.exports = class TradingSystem {
     sell() {
         const amount = 1000; // 100 USDT
         const price = this.tvclose;
-        const qty = this.round(amount/price);
+        const qty = this.round(amount / price);
         const params = {
             "category": "linear",
             "side": "Sell",
