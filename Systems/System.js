@@ -58,33 +58,33 @@ module.exports = class TradingSystem {
         await step();
     }
 
-    async startReplay() {
-        const chart = this.chart;
-        this.delay = await loadDelay();
-        chart.onReplayPoint(() => {
-            if (!chart.periods[0]) return;
+    // async startReplay() {
+    //     const chart = this.chart;
+    //     this.delay = await loadDelay();
+    //     chart.onReplayPoint(() => {
+    //         if (!chart.periods[0]) return;
 
-            if (chart.periods[0].time != this.lasttime) {
-                this.lasttime = chart.periods[0].time
-                console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${this.tvtime} Open:${this.tvopen} High:${this.tvhigh} Low:${this.tvlow} Close:${this.tvclose} Volume:${this.tvvolume}`);
-                this.trade();
-            }
-            else {
-                this.tvtime = chart.periods[0].time
-                this.tvopen = chart.periods[0].open
-                this.tvhigh = chart.periods[0].max
-                this.tvlow = chart.periods[0].min
-                this.tvclose = chart.periods[0].close
-                this.tvvolume = chart.periods[0].volume
-            }
-        });
-        chart.onReplayEnd(async () => {
-            console.log('Replay end');
-            this.finished = true;
-        });
-        await this.step();
-        // chart.replayStart();
-    }
+    //         if (chart.periods[0].time != this.lasttime) {
+    //             this.lasttime = chart.periods[0].time
+    //             console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${this.tvtime} Open:${this.tvopen} High:${this.tvhigh} Low:${this.tvlow} Close:${this.tvclose} Volume:${this.tvvolume}`);
+    //             this.trade();
+    //         }
+    //         else {
+    //             this.tvtime = chart.periods[0].time
+    //             this.tvopen = chart.periods[0].open
+    //             this.tvhigh = chart.periods[0].max
+    //             this.tvlow = chart.periods[0].min
+    //             this.tvclose = chart.periods[0].close
+    //             this.tvvolume = chart.periods[0].volume
+    //         }
+    //     });
+    //     chart.onReplayEnd(async () => {
+    //         console.log('Replay end');
+    //         this.finished = true;
+    //     });
+    //     await this.step();
+    //     // chart.replayStart();
+    // }
 
     start() {
         const chart = this.chart;

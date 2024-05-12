@@ -2,6 +2,7 @@
   "dependencies": {
     "@mathieuc/tradingview": "github:Mathieu2301/TradingView-API",
     "ccxt": "^4.3.18",
+    "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
     "delay": "^6.0.0",
     "moment": "^2.30.1"

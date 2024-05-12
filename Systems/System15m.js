@@ -95,6 +95,7 @@ module.exports = class TradingSystem {
             return;
         }
 
+        // Check short
         const short_ema_condition = e5 < e10 && e10 < e20;
         if (short_ema_condition) {
             this.current_action = SHORT;

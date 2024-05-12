@@ -54,8 +54,10 @@ const symbols = [
     // "PEOPLEUSDT",
     // "MOVRUSDT",
 ];
-// timestart = 1451606400;
-timestart = 1715385600;
+timestart = 1451606400;
+// timestart = 1715454900;
+// timestart = 1715470000;
+timeend = 1715472000;
 
 // const timeframes = ['1', '3', '5', '15', '30', '45', '60', '120', '180', '240', 'D', 'W']
 const timeframes = ['15']
@@ -82,7 +84,7 @@ async function loadChart(config, tvclient, symbol_str, exchange_str, timeframe_s
     await chart.setMarket(`${exchange_str}:${symbol_str}.P`, {
         timeframe: timeframe_str,
         range: 1, // Range is negative, so 'to' means 'from'
-        from: 1451606400, // Seven days before now
+        from: timestart, // Seven days before now
         to: Math.round(Date.now() / 1000),
     });
 
@@ -119,7 +121,7 @@ async function registerUpdate(chart, timeframe_str, timestart, cb) {
         }
         console.log(chart.periods.length, chart.periods[chart.periods.length - 1].time, timestart)
         // console.log(chart.periods.length, timestart);
-        await chart.fetchMore(1);
+        await chart.fetchMore(100);
     });
     // chart.fetchMore(1);
     // while(chart.periods[chart.periods.length - 1] - timeframe >timestart){
@@ -129,7 +131,7 @@ async function registerUpdate(chart, timeframe_str, timestart, cb) {
     // cb();
 }
 
-function writetocsv(chart, indicators, exchange_str, symbol_str, timeframe_str) {
+function writetocsv(chart, exchange_str, symbol_str, timeframe_str) {
     // create folders
     const nesteddir = path.join(__dirname, String(exchange_str), String(symbol_str), String(timeframe_str));
     fs.mkdirSync(nesteddir, { recursive: true });
@@ -137,47 +139,55 @@ function writetocsv(chart, indicators, exchange_str, symbol_str, timeframe_str) 
     const chart_file_name = path.join(nesteddir, "chart.csv");
     const csvWriter = createCsvWriter({
         path: chart_file_name,
-        headers: ["Timestamp", "Open", "High", "Low", "Close", "Volume"]
+        header: [
+            {id: 'time', title: 'time'},
+            {id: 'open', title: 'open'},
+            {id: 'max', title: 'high'},
+            {id: 'min', title: 'low'},
+            {id: 'close', title: 'close'},
+            {id: 'volume', title: 'volume'},
+        ]
     });
+    console.log(chart)
     csvWriter
         .writeRecords(chart.periods)
         .then(() => console.log('Write csv file successfully'))
         .catch((error) => console.error(error));
 
 
-    const indicatordir = path.join(nesteddir, "indicators");
-    fs.mkdirSync(indicatordir, { recursive: true });
-    Object.keys(indicators).forEach((indicator_str) => {
-        const indicator_file_name = path.join(indicatordir, `${indicator_str}.csv`);
+    // const indicatordir = path.join(nesteddir, "indicators");
+    // fs.mkdirSync(indicatordir, { recursive: true });
+    // Object.keys(indicators).forEach((indicator_str) => {
+    //     const indicator_file_name = path.join(indicatordir, `${indicator_str}.csv`);
 
-        rows = []
-        if (indicator_str === "TIENEMA") {
-            const csvWriter = createCsvWriter({
-                path: indicator_file_name,
-                headers: ["Timestamp", "5", "10", "20", "50", "100", "200"]
-            });
-            indicators[indicator_str].periods.forEach((r) => {
-                rows.push([r['$time'], r['5'], r['10'], r['20'], r['50'], r['100'], r['200']]);
-            })
-            csvWriter
-                .writeRecords(indicators[indicator_str].periods)
-                .then(() => console.log('Write csv file successfully'))
-                .catch((error) => console.error(error));
-        }
-        else if (indicator_str === "TIENRSI") {
-            const csvWriter = createCsvWriter({
-                path: indicator_file_name,
-                headers: ["Timestamp", "RSI", "FastMA", "LowMA"]
-            });
-            indicators[indicator_str].periods.forEach((r) => {
-                rows.push([r['$time'], r['RSI'], r['RSIbased_MA'], r['RSIbased_MA_2']])
-            })
-            csvWriter
-                .writeRecords(indicators[indicator_str].periods)
-                .then(() => console.log('Write csv file successfully'))
-                .catch((error) => console.error(error));
-        }
-    })
+    //     rows = []
+    //     if (indicator_str === "TIENEMA") {
+    //         const csvWriter = createCsvWriter({
+    //             path: indicator_file_name,
+    //             headers: ["Timestamp", "5", "10", "20", "50", "100", "200"]
+    //         });
+    //         indicators[indicator_str].periods.forEach((r) => {
+    //             rows.push([r['$time'], r['5'], r['10'], r['20'], r['50'], r['100'], r['200']]);
+    //         })
+    //         csvWriter
+    //             .writeRecords(indicators[indicator_str].periods)
+    //             .then(() => console.log('Write csv file successfully'))
+    //             .catch((error) => console.error(error));
+    //     }
+    //     else if (indicator_str === "TIENRSI") {
+    //         const csvWriter = createCsvWriter({
+    //             path: indicator_file_name,
+    //             headers: ["Timestamp", "RSI", "FastMA", "LowMA"]
+    //         });
+    //         indicators[indicator_str].periods.forEach((r) => {
+    //             rows.push([r['$time'], r['RSI'], r['RSIbased_MA'], r['RSIbased_MA_2']])
+    //         })
+    //         csvWriter
+    //             .writeRecords(indicators[indicator_str].periods)
+    //             .then(() => console.log('Write csv file successfully'))
+    //             .catch((error) => console.error(error));
+    //     }
+    // })
 }
 
 async function main() {
@@ -188,8 +198,8 @@ async function main() {
         timeframes.forEach(async (timeframe_str) => {
             await loadChart(config, tvclient, symbol_str, exchange_str, timeframe_str);
             cb_function = async () => {
-                await loadPrivateIndicators(config, charts[exchange_str][symbol_str][timeframe_str], symbol_str, exchange_str, timeframe_str);
-                writetocsv(charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], exchange_str, symbol_str, timeframe_str);
+                // await loadPrivateIndicators(config, charts[exchange_str][symbol_str][timeframe_str], symbol_str, exchange_str, timeframe_str);
+                writetocsv(charts[exchange_str][symbol_str][timeframe_str], exchange_str, symbol_str, timeframe_str);
             }
 
             await registerUpdate(charts[exchange_str][symbol_str][timeframe_str], timeframe_str, timestart, cb_function);
