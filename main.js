@@ -120,7 +120,7 @@ async function main() {
 
 
     exchange_str = "BYBIT"
-    timeframe_str = '15'
+    timeframe_str = '1'
     symbols.forEach(async symbol_str => {
         await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
     });
