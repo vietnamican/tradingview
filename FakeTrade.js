@@ -1,6 +1,6 @@
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const TradingSystem = require("./Systems/SystemReplay");
+const TradingSystem = require("./Systems/SystemReplay2");
 const Data = require("./Systems/Data");
 const fs = require('fs');
 const path = require('path');
@@ -8,13 +8,13 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 
 
-chart_file = "/home/xltt/TradingBot/Data/1d/GRTUSDT.txt";
-// chart_file = "/home/xltt/TradingBot/Data/1mm/LINKUSDT.txt";
+// chart_file = "/home/xltt/TradingBot/Data/1mm/GRTUSDT.txt";
+chart_file = "/home/xltt/TradingBot/Data/1mm/LINKUSDT.txt";
 // chart_file = "/home/xltt/TradingBot/Data/1mm/MATICUSDT.txt";
 // chart_file = "/home/xltt/TradingBot/Data/1mm/NEARUSDT.txt";
 // chart_file = "/home/xltt/TradingBot/Data/1mm/OCEANUSDT.txt";
 // chart_file = "/home/xltt/TradingBot/Data/1mm/OMNIUSDT.txt";
-// chart_file = "/home/xltt/TradingBot/Data/1mm/RNDRUSDT.txt";
+// chart_file = "/home/xltt/TradingBot/Data/1h/RNDRUSDT.txt";
 // chart_file = "/home/xltt/TradingBot/Data/1mm/SSVUSDT.txt";
 // chart_file = "/home/xltt/TradingBot/Data/1mm/WLDUSDT.txt";
 async function main() {

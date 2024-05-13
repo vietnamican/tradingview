@@ -138,7 +138,8 @@ module.exports = class Data {
                 currentrsi['RSI'] = rsi;
                 currentrsi['RSIbased_MA'] = ema9Rsi;
                 currentrsi['RSIbased_MA_2'] = wma45Rsi;
-                for (const i in range(0, this.chart.periods.length - 1, 1)) {
+                const rsi_period = 14;
+                for (const i in range(0, this.chart.periods.length, 1)) {
                     this.indicators['TIENEMA'].periods.push({
                         "time": moment.unix(Number(this.chart.periods[i]["time"] / 1000)).format(),
                         "5": currentema["5"][i],
@@ -148,17 +149,24 @@ module.exports = class Data {
                         "100": currentema["100"][i],
                         "200": currentema["200"][i],
                     });
-                    this.indicators['TIENRSI'].periods.push({
-                        "time": moment.unix(Number(this.chart.periods[i]["time"] / 1000)).format(),
-                        "RSI": currentrsi["RSI"][i],
-                        "RSIbased_MA": currentrsi['RSIbased_MA'][i],
-                        "RSIbased_MA_2": currentrsi['RSIbased_MA_2'][i]
-                    })
+                    if (i >= rsi_period) {
+                        this.indicators['TIENRSI'].periods.push({
+                            "time": moment.unix(Number(this.chart.periods[i]["time"] / 1000)).format(),
+                            "RSI": currentrsi["RSI"][i - rsi_period],
+                            "RSIbased_MA": currentrsi['RSIbased_MA'][i - rsi_period],
+                            "RSIbased_MA_2": currentrsi['RSIbased_MA_2'][i - rsi_period]
+                        })
+                    } else {
+                        this.indicators['TIENRSI'].periods.push({
+                            "time": moment.unix(Number(this.chart.periods[i]["time"] / 1000)).format(),
+                            "RSI": 50,
+                            "RSIbased_MA": 50,
+                            "RSIbased_MA_2": 50
+                        })
+                    }
                 }
                 console.log(this.indicators['TIENEMA'].periods.length);
             });
-        // calculate indicators
-
     }
 }
 

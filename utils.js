@@ -15,13 +15,13 @@ function range(start, end, step) {
 
     typeof step == "undefined" && (step = 1);
 
-    if (end < start) {
-        step = -step;
-    }
+    // if (end < start) {
+    //     step = -step;
+    // }
 
     if (typeofStart == "number") {
 
-        while (step > 0 ? end >= start : end <= start) {
+        while (step > 0 ? end > start : end < start) {
             range.push(start);
             start += step;
         }
@@ -48,4 +48,33 @@ function range(start, end, step) {
 
 }
 
-module.exports = { range };
+function isWholeDay(unixTime) {
+    // Chuyển đổi thời gian Unix thành đối tượng Date
+    const date = new Date(unixTime);
+
+    // Kiểm tra xem giờ, phút, giây, và mili giây có bằng 0 hay không
+    return date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0 && date.getMilliseconds() === 0;
+}
+
+function isWholeHour(unixTime) {
+    // Chuyển đổi thời gian Unix thành đối tượng Date
+    const date = new Date(unixTime);
+
+    // Kiểm tra xem giờ, phút, giây, và mili giây có bằng 0 hay không
+    return date.getMinutes() === 0 && date.getSeconds() === 0 && date.getMilliseconds() === 0;
+}
+
+function isWholeMinute(unixTime) {
+    // Chuyển đổi thời gian Unix thành đối tượng Date
+    const date = new Date(unixTime);
+
+    // Kiểm tra xem giờ, phút, giây, và mili giây có bằng 0 hay không
+    return date.getSeconds() === 0 && date.getMilliseconds() === 0;
+}
+
+module.exports = {
+    range,
+    isWholeDay,
+    isWholeHour,
+    isWholeMinute
+};
