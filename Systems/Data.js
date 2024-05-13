@@ -1,6 +1,7 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 const { range } = require('../utils');
+const moment = require("moment");
 
 
 // Hàm tính toán EMA
@@ -139,6 +140,7 @@ module.exports = class Data {
                 currentrsi['RSIbased_MA_2'] = wma45Rsi;
                 for (const i in range(0, this.chart.periods.length - 1, 1)) {
                     this.indicators['TIENEMA'].periods.push({
+                        "time": moment.unix(Number(this.chart.periods[i]["time"] / 1000)).format(),
                         "5": currentema["5"][i],
                         "10": currentema["10"][i],
                         "20": currentema["20"][i],
@@ -147,6 +149,7 @@ module.exports = class Data {
                         "200": currentema["200"][i],
                     });
                     this.indicators['TIENRSI'].periods.push({
+                        "time": moment.unix(Number(this.chart.periods[i]["time"] / 1000)).format(),
                         "RSI": currentrsi["RSI"][i],
                         "RSIbased_MA": currentrsi['RSIbased_MA'][i],
                         "RSIbased_MA_2": currentrsi['RSIbased_MA_2'][i]

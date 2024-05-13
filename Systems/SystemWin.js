@@ -221,50 +221,6 @@ module.exports = class TradingSystem {
         const qty = this.round(amount / price);
         const params = {
             "category": "linear",
-            "side": "Buy",
-            "orderType": "Market"
-        }
-        console.log(`Buy ${qty} ${this.symbol_str} with price ${price}`);
-        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
-            .then(result => {
-                this.qty = qty;
-                this.price = price;
-            })
-            .catch(error => {
-                console.log(`Error occured when buy ${qty} ${this.symbol_str} with price ${price}`);
-                console.error('Error:', error);
-                this.current_action = STAND;
-            });
-    }
-
-    async liquidbuy() {
-        const qty = this.qty;
-        const price = this.price;
-        const params = {
-            "category": "linear",
-            "side": "Sell",
-            "orderType": "Market"
-        }
-        console.log(`Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
-        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
-            .then(result => {
-                this.qty = 0;
-                this.price = 0;
-            })
-            .catch(error => {
-                console.log(`Error occured when liquid buy ${qty} ${this.symbol_str} with price ${price}`);
-                console.error('Error:', error);
-                this.current_action = LONG;
-                this.current_status = LIQUID;
-            });
-    }
-
-    sell() {
-        const amount = 1000; // 100 USDT
-        const price = this.tvclose;
-        const qty = this.round(amount / price);
-        const params = {
-            "category": "linear",
             "side": "Sell",
             "orderType": "Market"
         }
@@ -281,7 +237,7 @@ module.exports = class TradingSystem {
             });
     }
 
-    async liquidsell() {
+    async liquidbuy() {
         const qty = this.qty;
         const price = this.price;
         const params = {
@@ -297,6 +253,50 @@ module.exports = class TradingSystem {
             })
             .catch(error => {
                 console.log(`Error occured when liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = LONG;
+                this.current_status = LIQUID;
+            });
+    }
+
+    sell() {
+        const amount = 1000; // 100 USDT
+        const price = this.tvclose;
+        const qty = this.round(amount / price);
+        const params = {
+            "category": "linear",
+            "side": "Buy",
+            "orderType": "Market"
+        }
+        console.log(`Buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = qty;
+                this.price = price;
+            })
+            .catch(error => {
+                console.log(`Error occured when buy ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = STAND;
+            });
+    }
+
+    async liquidsell() {
+        const qty = this.qty;
+        const price = this.price;
+        const params = {
+            "category": "linear",
+            "side": "Sell",
+            "orderType": "Market"
+        }
+        console.log(`Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = 0;
+                this.price = 0;
+            })
+            .catch(error => {
+                console.log(`Error occured when liquid buy ${qty} ${this.symbol_str} with price ${price}`);
                 console.error('Error:', error);
                 this.current_action = SHORT;
                 this.current_status = LIQUID;
