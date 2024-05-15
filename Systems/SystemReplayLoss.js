@@ -1,5 +1,9 @@
 const moment = require("moment");
 const axios = require("axios");
+const { isWholeDay, isWholeMinute } = require("../utils");
+const fs = require('fs');
+const path = require('path');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const LONG = 0;
 const SHORT = 1;
@@ -47,20 +51,16 @@ module.exports = class TradingSystem {
         this.current_action = STAND;
         this.current_status = FREE;
         this.qtyStep = 0.1;
+        this.balance_logs = [];
+        this.pnl_logs = [];
+        console.log(__dirname);
+
         // axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
         //     this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
         // });
     }
 
-    async step() {
-        if (this.finished) return;
-        await this.chart.replayStep(1);
-        await this.delay(100);
-        console.log('Replay step');
-        await step();
-    }
-
-    updateStatus(i) {
+    async updateStatus(i) {
         this.tvtime = this.chart.periods[i].time
         this.tvopen = this.chart.periods[i].open
         this.tvhigh = this.chart.periods[i].max
@@ -70,17 +70,56 @@ module.exports = class TradingSystem {
         this.tvindicator = {}
         this.tvindicator["TIENEMA"] = this.indicators["TIENEMA"].periods[i];
         this.tvindicator["TIENRSI"] = this.indicators["TIENRSI"].periods[i];
+        // console.log(this.tvtime);
+        const date = new Date(Number(this.tvtime));
+        // console.log(date);
+        // console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`)
+        if (isWholeDay(Number(this.tvtime))) {
+            const balance = this.balance();
+            console.log(balance);
+            this.balance_logs.push({ "time": this.tvtime, "balance": balance });
+            // const row = {"time": this.tvtime, "balance": balance}
+            // console.log(balance);
+            // await this.csvWriter
+            //     .writeRecords([row])
+            //     .catch((error) => console.error(error));
+        }
     }
     async start() {
         await import("delay").then((val) => { this.delay = val.default })
         const chart = this.chart;
         for (let i = 0; i < chart.periods.length; i++) {
-            // console.log(i);
-            this.updateStatus(i);
-            // console.log(`[${moment.unix(this.tvtime / 1000).format()}] ${this.exchange_str}:${this.symbol_str} Open:${this.tvopen} High:${this.tvhigh} Low:${this.tvlow} Close:${this.tvclose} Volume:${this.tvvolume}`);
-            this.trade();
-            // await this.delay(100);
+            if (i >= 14) {
+                // console.log(i);
+                this.updateStatus(i);
+                // console.log(`[${moment.unix(this.tvtime / 1000).format()}] ${this.exchange_str}:${this.symbol_str} Open:${this.tvopen} High:${this.tvhigh} Low:${this.tvlow} Close:${this.tvclose} Volume:${this.tvvolume}`);
+                this.trade();
+                // await this.delay(100);
+            }
         }
+        const balance_file = path.join(__dirname, "balance.csv");
+        const balance_csvWriter = createCsvWriter({
+            path: balance_file,
+            header: [
+                { id: 'time', title: 'time' },
+                { id: 'balance', title: 'balance' }
+            ]
+        });
+        await balance_csvWriter
+            .writeRecords(this.balance_logs)
+            .catch((error) => console.error(error));
+
+        const pnl_file = path.join(__dirname, "pnl.csv");
+        const pnl_csvWriter = createCsvWriter({
+            path: pnl_file,
+            header: [
+                { id: 'time', title: 'time' },
+                { id: 'pnl', title: 'pnl' }
+            ]
+        });
+        await pnl_csvWriter
+            .writeRecords(this.pnl_logs)
+            .catch((error) => console.error(error));
     }
 
     trade() {
@@ -215,6 +254,7 @@ module.exports = class TradingSystem {
     async liquidbuy() {
         const qty = this.qty;
         const price = this.tvclose;
+        this.record_pnl(qty, LONG, this.price, price);
 
         console.log(`Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
 
@@ -238,12 +278,22 @@ module.exports = class TradingSystem {
     async liquidsell() {
         const qty = this.qty;
         const price = this.tvclose;
+        this.record_pnl(qty, SHORT, this.price, price);
 
         console.log(`Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
 
         this.record('buy', price, qty);
         this.qty = qty;
         this.price = price;
+    }
+    record_pnl(qty, action, first_price, second_price) {
+        let pnl = 0;
+        if (action === LONG) {
+            pnl = (second_price - first_price) * qty;
+        } else if (action == SHORT) {
+            pnl = (first_price - second_price) * qty;
+        }
+        this.pnl_logs.push({ "time": this.tvtime, "pnl": pnl });
     }
 
     round(number) {
@@ -262,11 +312,14 @@ module.exports = class TradingSystem {
         let total = 0;
         if (this.current_action == LONG) {
             total = this.usdt + this.price * this.qty;
+            total -= this.price * this.qty * 0.055 / 100;
         } else if (this.current_action == SHORT) {
             total = this.usdt - this.price * this.qty;
+            total -= this.price * this.qty * 0.055 / 100;
         } else {
             total = this.usdt;
         }
         console.log(`[${moment.unix(this.tvtime / 1000).format()}] Your balance is ${total}`);
+        return total;
     }
 }

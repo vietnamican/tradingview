@@ -29,7 +29,6 @@ const symbols = [
     "BTCUSDT",
     "ETHUSDT",
     "ETHFIUSDT",
-    "ENAUSDT",
     "WIFUSDT",
     "LTCUSDT",
     "BCHUSDT",
@@ -48,7 +47,6 @@ const symbols = [
     "MOVRUSDT",
     "XRPUSDT",
     "DOTUSDT",
-
 ];
 
 // const symbols = ["NEARUSDT",  "AVAXUSDT"];

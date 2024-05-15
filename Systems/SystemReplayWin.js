@@ -52,6 +52,7 @@ module.exports = class TradingSystem {
         this.current_status = FREE;
         this.qtyStep = 0.1;
         this.balance_logs = [];
+        this.pnl_logs = [];
         console.log(__dirname);
 
         // axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
@@ -69,66 +70,68 @@ module.exports = class TradingSystem {
         this.tvindicator = {}
         this.tvindicator["TIENEMA"] = this.indicators["TIENEMA"].periods[i];
         this.tvindicator["TIENRSI"] = this.indicators["TIENRSI"].periods[i];
-        // console.log(this.tvtime);
-        const date = new Date(Number(this.tvtime));
-        // console.log(date);
-        // console.log(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`)
+
         if (isWholeDay(Number(this.tvtime))) {
             const balance = this.balance();
             console.log(balance);
             this.balance_logs.push({ "time": this.tvtime, "balance": balance });
-            // const row = {"time": this.tvtime, "balance": balance}
-            // console.log(balance);
-            // await this.csvWriter
-            //     .writeRecords([row])
-            //     .catch((error) => console.error(error));
         }
     }
     async start() {
         await import("delay").then((val) => { this.delay = val.default })
+        const chart = this.chart;
+        for (let i = 0; i < chart.periods.length; i++) {
+            if (i >= 14) {
+                this.updateStatus(i);
+                this.trade();
+            }
+        }
+        await this.write_balance();
+        await this.write_pnl();
+    }
+
+    async write_balance() {
         const balance_file = path.join(__dirname, "balance.csv");
-        this.csvWriter = createCsvWriter({
+        const balance_csvWriter = createCsvWriter({
             path: balance_file,
             header: [
                 { id: 'time', title: 'time' },
                 { id: 'balance', title: 'balance' }
             ]
         });
-        await this.delay(3000);
-        const chart = this.chart;
-        for (let i = 0; i < chart.periods.length; i++) {
-            if (i >= 14) {
-                // console.log(i);
-                this.updateStatus(i);
-                // console.log(`[${moment.unix(this.tvtime / 1000).format()}] ${this.exchange_str}:${this.symbol_str} Open:${this.tvopen} High:${this.tvhigh} Low:${this.tvlow} Close:${this.tvclose} Volume:${this.tvvolume}`);
-                this.trade();
-                // await this.delay(100);
-            }
-        }
-        // await this.delay(10000);
-        await this.csvWriter
+        await balance_csvWriter
             .writeRecords(this.balance_logs)
             .catch((error) => console.error(error));
-        // await this.delay(10000);
+    }
+
+    async write_pnl() {
+        const pnl_file = path.join(__dirname, "pnl.csv");
+        const pnl_csvWriter = createCsvWriter({
+            path: pnl_file,
+            header: [
+                { id: 'time', title: 'time' },
+                { id: 'pnl', title: 'pnl' }
+            ]
+        });
+        await pnl_csvWriter
+            .writeRecords(this.pnl_logs)
+            .catch((error) => console.error(error));
     }
 
     trade() {
-        // if (this.lasttime === -1 || this.tvtime === -1 || this.tvopen === -1 || this.tvhigh === -1 || this.tvlow === -1 || this.tvclose === -1 || this.tvvolume === -1) {
-        //     return;
-        // }
         if (this.current_action === STAND) {
-            this.longshot();
+            this.takePosition();
             return;
         } else if (this.current_action == LONG) {
-            this.freelong();
+            this.sltplong();
             return;
         } else if (this.current_action == SHORT) {
-            this.freeshort();
+            this.sltpshort();
             return;
         }
     }
 
-    longshot() {
+    takePosition() {
         const close = this.tvclose;
         const current_ema = this.tvindicator["TIENEMA"];
         const e5 = current_ema['5'];
@@ -146,7 +149,7 @@ module.exports = class TradingSystem {
         const long_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
         const long_rsi_condition = rsi > 70;
         if (long_ema_condition && long_rsi_condition) {
-            this.current_action = LONG;
+            this.current_action = SHORT;
             this.take_trade();
             return;
         }
@@ -155,14 +158,18 @@ module.exports = class TradingSystem {
         const short_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
         const short_rsi_condition = rsi < 30;
         if (short_ema_condition && short_rsi_condition) {
-            this.current_action = SHORT;
+            this.current_action = LONG;
             this.take_trade();
             return;
         }
         return;
     }
 
-    freelong() {
+    sltpshort() {
+        // sl
+
+        // tp
+        
         const close = this.tvclose;
         const current_ema = this.tvindicator["TIENEMA"];
         const e5 = current_ema['5'];
@@ -180,7 +187,7 @@ module.exports = class TradingSystem {
         }
     }
 
-    freeshort() {
+    sltplong() {
         const close = this.tvclose;
         const current_ema = this.tvindicator["TIENEMA"];
         const e5 = current_ema['5'];
@@ -244,6 +251,7 @@ module.exports = class TradingSystem {
     async liquidbuy() {
         const qty = this.qty;
         const price = this.tvclose;
+        this.record_pnl(qty, LONG, this.price, price);
 
         console.log(`Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
 
@@ -267,12 +275,22 @@ module.exports = class TradingSystem {
     async liquidsell() {
         const qty = this.qty;
         const price = this.tvclose;
+        this.record_pnl(qty, SHORT, this.price, price);
 
         console.log(`Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
 
         this.record('buy', price, qty);
         this.qty = qty;
         this.price = price;
+    }
+    record_pnl(qty, action, first_price, second_price) {
+        let pnl = 0;
+        if (action === LONG) {
+            pnl = (second_price - first_price) * qty;
+        } else if (action == SHORT) {
+            pnl = (first_price - second_price) * qty;
+        }
+        this.pnl_logs.push({ "time": this.tvtime, "pnl": pnl });
     }
 
     round(number) {

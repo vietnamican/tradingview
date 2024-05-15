@@ -1,5 +1,6 @@
 const ccxt = require("ccxt");
 const { range } = require("./utils");
+const asciichart = require('asciichart');
 
 const config = {
     "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
@@ -22,10 +23,9 @@ async function loadBybitTrading(config) {
     return exchange;
 }
 
-async function main() {
+async function statistic() {
     bybit = await loadBybitTrading(config);
-    const starttime = 1715472000000
-    1715615844682
+    const starttime = 1715677560000
     const endtime = Date.now();
     step = 60 * 60 * 1000;
     const results = []
@@ -33,7 +33,7 @@ async function main() {
     const ranges = range(endtime, starttime, -step);
     for (let i = 0; i < ranges.length; i++) {
         const pieceoftimeend = ranges[i];
-        const pieceoftimestart = pieceoftimeend - step;
+        const pieceoftimestart = pieceoftimeend - step < starttime ? starttime : pieceoftimeend - step;
 
         const result = await bybit.fetchPositionsHistory(symbol = "", pieceoftimestart, limit = 100, params = { "caterogy": "linear", "endTime": pieceoftimeend });
         results.push(...result);
@@ -44,11 +44,15 @@ async function main() {
     let sum = 0;
     let numGainPnl = 0;
     let numLossPnl = 0;
+    const outer_result = []
     results.forEach((result) => {
-        // console.log(result.info.closePnL)
-        const pnl = Number(result.info.closedPnl);
-        sum += Number(result.info.closedPnl);
+        // console.log(result)
+        let pnl = Number(result.info.closedPnl);
+        // pnl = pnl <= 0 ? -3 : pnl;
+        sum += Number(pnl);
         pnl > 0 ? numGainPnl++ : numLossPnl++;
+        outer_result.push({ pnl, "pair": result.info.symbol });
+
     })
     console.log(sum, numGainPnl, numLossPnl);
     // for (const pieceoftimeend in ranges) {
@@ -60,6 +64,47 @@ async function main() {
     //     results.push(...result);
     //     console.log(results.length);
     // }
+    return outer_result;
+    // return results.map((v)=>Number(v.info.closedPnl));
+}
+
+function reduceByKey(array, key) {
+    return array.reduce((acc, curr) => {
+        const value = curr[key];
+        if (!acc[value]) {
+            acc[value] = [];
+        }
+        acc[value].push(curr);
+        return acc;
+    }, {});
+}
+
+function mapSumByKey(value){
+    let sum = 0;
+    value.forEach((v)=>{
+        sum += v.pnl;
+    })
+    return {...value, "sum": sum};
+}
+
+async function main() {
+    let delay = null;
+    await import("delay").then((val) => { delay = val.default });
+    results = await statistic();
+    results = reduceByKey(results, "pair");
+    Object.keys(results).map((r)=>{
+        let sum = 0;
+        
+        results[r].forEach((v)=>{
+            sum += v.pnl;
+        })
+
+        results[r] = {...results[r], "sum": sum}
+    })
+    console.log(results);
+    // await delay(5000);
+    // results.forEach((r) => console.log(r));
+    // console.log(asciichart.plot(results));
 }
 
 main();
