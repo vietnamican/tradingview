@@ -1,3 +1,4 @@
+const moment = require("moment");
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
 const System = require("./Systems/SystemWin");
@@ -12,18 +13,18 @@ const config = {
 }
 
 const symbols = [
-    "NEARUSDT", 
-    "AVAXUSDT", 
-    "GRTUSDT", 
-    "RNDRUSDT", 
+    "NEARUSDT",
+    "AVAXUSDT",
+    "GRTUSDT",
+    "RNDRUSDT",
     "AGIXUSDT",
-    "ARUSDT", 
-    "BOMEUSDT", 
-    "LINKUSDT", 
-    "MATICUSDT", 
-    "OMNIUSDT", 
-    "OPUSDT", 
-    "SSVUSDT", 
+    "ARUSDT",
+    "BOMEUSDT",
+    "LINKUSDT",
+    "MATICUSDT",
+    "OMNIUSDT",
+    "OPUSDT",
+    "SSVUSDT",
     "WLDUSDT",
     "SOLUSDT",
     "BTCUSDT",
@@ -90,6 +91,10 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
     charts[exchange_str][symbol_str] = charts[exchange_str][symbol_str] || {};
     charts[exchange_str][symbol_str][timeframe_str] = chart;
 
+    chart.onError((...err)=>{
+        console.log(`[${moment().format()}] Chart ${exchange_str}:${symbol_str} got error: ${err}`);
+    })
+
     indicList = await TradingView.getPrivateIndicators(config.tvsessionid);
     await indicList.forEach(async (indic) => {
         const privateIndic = await indic.get();
@@ -104,6 +109,10 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
             indicators[exchange_str][symbol_str][timeframe_str][indic.name] = indicator;
             console.log(`Indicator ${indic.name} for ${exchange_str}:${symbol_str} loaded!`);
         });
+
+        indicator.onError((...err)=>{
+            console.log(`[${moment().format()}] Indicator ${indic.name} for ${exchange_str}:${symbol_str} got error: ${err}`);
+        })
     });
     await delay(2000);
 }
@@ -111,6 +120,10 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
 async function main() {
     delay = await loadDelay();
     const tvclient = await loadTradingViewClient(config);
+    tvclient.onError((...err) => {
+        console.error(`[${moment().format()}] Client got error: ${err}`);
+        tvclient.end();
+    });
     // console.log(tvclient);
 
     const bybit = await loadBybitTrading(config);
@@ -122,15 +135,15 @@ async function main() {
     symbols.forEach(async symbol_str => {
         await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
     });
-    await delay(5000);
-    // await delay(symbols.length*1*1000);
+    // await delay(5000);
+    await delay(symbols.length * 1 * 1000);
 
     symbols.forEach(symbol_str => {
         const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str])
         systems.push(system);
     });
 
-    systems.forEach(system=> system.start());
+    systems.forEach(system => system.start());
 
     // const mk = await bybit.fetchMarkets(category="linear", symbol="DOGEUSDT");
     // console.log(mk);
