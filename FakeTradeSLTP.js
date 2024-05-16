@@ -1,6 +1,6 @@
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const TradingSystem = require("./Systems/SystemReplayWinSLTP");
+const TradingSystem = require("./Systems/SystemReplayWinSLTPKline");
 const Data = require("./Systems/Data");
 const fs = require('fs');
 const path = require('path');
@@ -13,8 +13,8 @@ root = "/home/xltt/TradingBot/Data/"
 
 // chart_file = root + "1mm/GRTUSDT.txt";
 // chart_file = root + "1mm/LINKUSDT.txt";
-chart_file = root + "1mm/MATICUSDT.txt";
-// chart_file = root + "1mm/NEARUSDT.txt";
+// chart_file = root + "1mm/MATICUSDT.txt";
+chart_file = root + "1mm/NEARUSDT.txt";
 // chart_file = root + "1mm/OCEANUSDT.txt";
 // chart_file = root + "1mm/OMNIUSDT.txt";
 // chart_file = root + "1mm/RNDRUSDT.txt";

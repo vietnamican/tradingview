@@ -27,20 +27,18 @@ module.exports = class TradingSystem {
     timeframe_str = "";
     indicators = {};
     current_action;
-    lasttime = -1;
-    tvtime = -1;
-    tvopen = -1;
-    tvhigh = -1;
-    tvlow = -1;
-    tvclose = -1;
-    tvvolume = -1;
+    tvtime = [];
+    tvopen = [];
+    tvhigh = [];
+    tvlow = [];
+    tvclose = [];
+    tvvolume = [];
     qty = 0;
     price = 0;
     precision = 1;
     loop = [1, 2, 3];
     finished = false;
     usdt = 50000;
-
 
     // mode: forward or replay
     constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, options) {
@@ -59,6 +57,9 @@ module.exports = class TradingSystem {
         this.options = options;
         this.debug = true;
         this.init();
+        this.tvindicator = {};
+        this.tvindicator["TIENEMA"] = []
+        this.tvindicator["TIENRSI"] = []
 
         // axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
         //     this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
@@ -69,22 +70,38 @@ module.exports = class TradingSystem {
             this.options = {}
         }
         if (!this.options.sl) {
-            this.options.sl = 0.003;
+            this.options.sl = 0.002;
         }
         if (!this.options.tp) {
-            this.options.tp = 0.006;
+            this.options.tp = 0.002;
+        }
+        if (!this.options.kline_ratio) {
+            this.options.kline_ratio = 2;
+        }
+        if (!this.options.history_length) {
+            this.options.history_length = 10;
         }
     }
     async updateStatus(i) {
-        this.tvtime = this.chart.periods[i].time
-        this.tvopen = this.chart.periods[i].open
-        this.tvhigh = this.chart.periods[i].max
-        this.tvlow = this.chart.periods[i].min
-        this.tvclose = this.chart.periods[i].close
-        this.tvvolume = this.chart.periods[i].volume
-        this.tvindicator = {}
-        this.tvindicator["TIENEMA"] = this.indicators["TIENEMA"].periods[i];
-        this.tvindicator["TIENRSI"] = this.indicators["TIENRSI"].periods[i];
+        this.tvtime.unshift(this.chart.periods[i].time);
+        this.tvopen.unshift(this.chart.periods[i].open);
+        this.tvhigh.unshift(this.chart.periods[i].high);
+        this.tvlow.unshift(this.chart.periods[i].low);
+        this.tvclose.unshift(this.chart.periods[i].close);
+        this.tvvolume.unshift(this.chart.periods[i].volume);
+
+        this.tvtime.splice(this.options.history_length);
+        this.tvopen.splice(this.options.history_length);
+        this.tvhigh.splice(this.options.history_length);
+        this.tvlow.splice(this.options.history_length);
+        this.tvclose.splice(this.options.history_length);
+        this.tvvolume.splice(this.options.history_length);
+
+        this.tvindicator["TIENEMA"].unshift(this.indicators["TIENEMA"].periods[i]);
+        this.tvindicator["TIENRSI"].unshift(this.indicators["TIENRSI"].periods[i]);
+
+        this.tvindicator["TIENEMA"].splice(this.options.history_length);
+        this.tvindicator["TIENRSI"].splice(this.options.history_length);
 
         // if (this.debug) {
         //     if (this.tvtime >= 1704155040000 && this.tvtime <= 1704157860000) {
@@ -92,9 +109,9 @@ module.exports = class TradingSystem {
         //     }
         // }
 
-        if (isWholeDay(Number(this.tvtime))) {
+        if (isWholeDay(Number(this.tvtime[0]))) {
             const balance = this.balance();
-            this.balance_logs.push({ "time": this.tvtime, "balance": balance });
+            this.balance_logs.push({ "time": this.tvtime[0], "balance": balance });
         }
     }
     async start() {
@@ -131,23 +148,47 @@ module.exports = class TradingSystem {
     }
 
     takePosition() {
-        const close = this.tvclose;
-        const current_ema = this.tvindicator["TIENEMA"];
+        const closes = this.tvclose;
+        const opens = this.tvopen;
+        const current_ema = this.tvindicator["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
         const e20 = current_ema['20'];
         const e50 = current_ema['50'];
         const e100 = current_ema['100'];
         const e200 = current_ema['200'];
-        const current_rsi = this.tvindicator["TIENRSI"];
+        const current_rsi = this.tvindicator["TIENRSI"][0];
         const rsi = current_rsi["RSI"]
         const rsi_fast = current_rsi["RSIbased_MA"];
         const rsi_slow = current_rsi["RSIbased_MA_2"];
 
         // Check long
-        const long_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
+        const long_ema_condition = closes[0] > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
         const long_rsi_condition = rsi > 70;
-        if (long_ema_condition && long_rsi_condition) {
+        const long_kline_condition = () => {
+            const current_body = closes[0] - opens[0];
+            // kline rise
+            if (current_body > 0) {
+                // take up to 5 previous klines
+                const length = Math.min(5, this.tvclose.length - 1);
+                console.log("Start Long Kline condition check")
+                console.log("0: " + current_body)
+                let previous_body = 0;
+                for (let i = 1; i <= length; i++) {
+                    previous_body += Math.abs(closes[i] - opens[i]);
+                    console.log(i + ": " + Math.abs(closes[i] - opens[i]))
+                }
+                const previous_body_avg = previous_body / length;
+                console.log("avg: ", previous_body_avg);
+                console.log("rsi: ", rsi);
+                console.log(closes[0], e5, e10, e20, e50, e100, e200);
+                return current_body >= this.options.kline_ratio * previous_body_avg;
+            }
+            return false;
+        }
+        // console.log("Long Kline condition " + long_kline_condition());
+        if (long_ema_condition && long_rsi_condition && long_kline_condition()) {
+            // if (long_ema_condition && long_rsi_condition) {
             this.current_action = SHORT;
             console.log("---------------------------------------")
             console.log("Short")
@@ -156,9 +197,26 @@ module.exports = class TradingSystem {
         }
 
         // Check short
-        const short_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
+        const short_ema_condition = closes[0] < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
         const short_rsi_condition = rsi < 30;
-        if (short_ema_condition && short_rsi_condition) {
+        const short_kline_condition = () => {
+            const current_body = closes[0] - opens[0];
+            // kline fall
+            if (current_body < 0) {
+                // take up to 5 previous klines
+                const length = Math.min(5, this.tvclose.length - 1);
+                let previous_body = 0;
+                for (let i = 1; i <= length; i++) {
+                    previous_body += Math.abs(closes[i] - opens[i]);
+                }
+                const previous_body_avg = previous_body / length;
+                return current_body >= this.options.kline_ratio * previous_body_avg;
+            }
+            return false;
+        }
+        // console.log("Short Kline condition " + short_kline_condition());
+        if (short_ema_condition && short_rsi_condition && short_kline_condition()) {
+            // if (short_ema_condition && short_rsi_condition) {
             this.current_action = LONG;
             console.log("---------------------------------------")
             console.log("Long")
@@ -169,32 +227,34 @@ module.exports = class TradingSystem {
     }
 
     sltplong() {
-        const close = this.tvclose;
+        const closes = this.tvclose;
+        const opens = this.tvopen;
         const sl = this.sl_price;
         const tp = this.tp_price;
-        const current_ema = this.tvindicator["TIENEMA"];
+        const current_ema = this.tvindicator["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
         const e20 = current_ema['20'];
         const e50 = current_ema['50'];
+        const e100 = current_ema['100'];
         const e200 = current_ema['200'];
-        const current_rsi = this.tvindicator["TIENRSI"];
+        const current_rsi = this.tvindicator["TIENRSI"][0];
         const rsi = current_rsi["RSI"]
         const rsi_fast = current_rsi["RSIbased_MA"];
         const rsi_slow = current_rsi["RSIbased_MA_2"];
 
         // sl
-        if (close < sl) {
+        if (closes[0] < sl) {
             console.log("SL Long");
-            console.log(`[${moment.unix(this.tvtime)}] SL Long with price ${close} and threshold ${sl}`)
+            console.log(`[${moment.unix(this.tvtime[0] / 1000)}] ${this.tvtime[0]} SL Long with price ${closes[0]} and threshold ${sl}`)
             this.liquidlong();
             this.current_action = SEEKING_CUTUP;
             return;
         }
         // tp
-        if (close > tp) {
+        if (closes[0] > tp) {
             console.log("TP Long")
-            console.log(`[${moment.unix(this.tvtime)}] TP Long with price ${close} and threshold ${sl}`)
+            console.log(`[${moment.unix(this.tvtime[0] / 1000)}] ${this.tvtime[0]} TP Long with price ${closes[0]} and threshold ${tp}`)
             this.liquidlong();
             this.current_action = SEEKING_CUTUP;
             return;
@@ -209,32 +269,34 @@ module.exports = class TradingSystem {
     }
 
     sltpshort() {
-        const close = this.tvclose;
+        const closes = this.tvclose;
+        const opens = this.tvopen;
         const sl = this.sl_price;
         const tp = this.tp_price;
-        const current_ema = this.tvindicator["TIENEMA"];
+        const current_ema = this.tvindicator["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
         const e20 = current_ema['20'];
         const e50 = current_ema['50'];
+        const e100 = current_ema['100'];
         const e200 = current_ema['200'];
-        const current_rsi = this.tvindicator["TIENRSI"];
+        const current_rsi = this.tvindicator["TIENRSI"][0];
         const rsi = current_rsi["RSI"]
         const rsi_fast = current_rsi["RSIbased_MA"];
         const rsi_slow = current_rsi["RSIbased_MA_2"];
 
         // sl
-        if (close > sl) {
+        if (closes[0] > sl) {
             console.log("SL Short")
-            console.log(`[${moment.unix(this.tvtime / 1000)}] SL Short with price ${close} and threshold ${sl}`)
+            console.log(`[${moment.unix(this.tvtime[0] / 1000)}] ${this.tvtime[0]} SL Short with price ${closes[0]} and threshold ${sl}`)
             this.liquidshort();
             this.current_action = SEEKING_CUTDOWN;
             return;
         }
         // tp
-        if (close < tp) {
+        if (closes[0] < tp) {
             console.log("TP Short")
-            console.log(`[${moment.unix(this.tvtime / 1000)}] TP Short with price ${close} and threshold ${sl}`)
+            console.log(`[${moment.unix(this.tvtime[0] / 1000)}] ${this.tvtime[0]} TP Short with price ${closes[0]} and threshold ${tp}`)
             this.liquidshort();
             this.current_action = SEEKING_CUTDOWN;
             return;
@@ -249,7 +311,7 @@ module.exports = class TradingSystem {
     }
 
     seekingcutdown() {
-        const current_ema = this.tvindicator["TIENEMA"];
+        const current_ema = this.tvindicator["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
 
@@ -260,7 +322,7 @@ module.exports = class TradingSystem {
     }
 
     seekingcutup() {
-        const current_ema = this.tvindicator["TIENEMA"];
+        const current_ema = this.tvindicator["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
 
@@ -271,14 +333,14 @@ module.exports = class TradingSystem {
     }
 
     async long() {
-        const time = this.tvtime;
+        const time = this.tvtime[0];
         const amount = 50000; // 100 USDT
-        const price = this.tvclose;
+        const price = this.tvclose[0];
         const qty = this.round(amount / price);
         const sl_price = price * (1 - this.options.sl);
         const tp_price = price * (1 + this.options.tp);
 
-        console.log(`[${moment.unix(time / 1000).format()}] Buy ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Buy ${qty} ${this.symbol_str} with price ${price}`);
 
         this.record('buy', price, qty);
         this.qty = qty;
@@ -288,12 +350,12 @@ module.exports = class TradingSystem {
     }
 
     async liquidlong() {
-        const time = this.tvtime;
+        const time = this.tvtime[0];
         const qty = this.qty;
-        const price = this.tvclose;
+        const price = this.tvclose[0];
         this.record_pnl(qty, LONG, this.price, price);
 
-        console.log(`[${moment.unix(time / 1000).format()}] Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
 
         this.record('sell', price, qty);
         this.price = 0;
@@ -301,14 +363,14 @@ module.exports = class TradingSystem {
     }
 
     short() {
-        const time = this.tvtime;
+        const time = this.tvtime[0];
         const amount = 50000; // 100 USDT
-        const price = this.tvclose;
+        const price = this.tvclose[0];
         const qty = this.round(amount / price);
         const sl_price = price * (1 + this.options.sl);
         const tp_price = price * (1 - this.options.tp);
 
-        console.log(`[${moment.unix(time / 1000).format()}] Sell ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Sell ${qty} ${this.symbol_str} with price ${price}`);
 
         this.record('sell', price, qty);
         this.qty = qty;
@@ -318,12 +380,12 @@ module.exports = class TradingSystem {
     }
 
     async liquidshort() {
-        const time = this.tvtime;
+        const time = this.tvtime[0];
         const qty = this.qty;
-        const price = this.tvclose;
+        const price = this.tvclose[0];
         this.record_pnl(qty, SHORT, this.price, price);
 
-        console.log(`[${moment.unix(time / 1000).format()}] Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
 
         this.record('buy', price, qty);
         this.qty = 0;
@@ -336,8 +398,8 @@ module.exports = class TradingSystem {
         } else if (action == SHORT) {
             pnl = (first_price - second_price) * qty;
         }
-        console.log(`[${moment.unix(this.tvtime / 1000).format()}] PNL: ${pnl}`)
-        this.pnl_logs.push({ "time": this.tvtime, "pnl": pnl });
+        console.log(`[${moment.unix(this.tvtime[0] / 1000).format()}] ${this.tvtime[0]} PNL: ${pnl}`)
+        this.pnl_logs.push({ "time": this.tvtime[0], "pnl": pnl });
     }
 
     round(number) {
@@ -363,7 +425,7 @@ module.exports = class TradingSystem {
         } else {
             total = this.usdt;
         }
-        console.log(`[${moment.unix(this.tvtime / 1000).format()}] Your balance is ${total}`);
+        console.log(`[${moment.unix(this.tvtime[0] / 1000).format()}] ${this.tvtime[0]} Your balance is ${total}`);
         return total;
     }
 

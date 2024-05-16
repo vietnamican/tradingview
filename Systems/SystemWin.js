@@ -69,9 +69,6 @@ module.exports = class TradingSystem {
                 this.tvvolume = chart.periods[0].volume
             }
         });
-        chart.onError(()=>{
-            
-        }) 
     }
 
     trade() {
