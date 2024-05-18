@@ -60,7 +60,7 @@ module.exports = class TradingSystem {
 
             if (chart.periods[0].time != this.lasttime) {
                 this.lasttime = chart.periods[0].time
-                const period = this.buffer.chard.period;
+                const period = this.buffer.chart.period;
                 console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${period.time} Open:${period.open} High:${period.max} Low:${this.period.min} Close:${this.period.close} Volume:${period.volume}`);
                 // this.trade();
                 this.onClose();
