@@ -16,15 +16,6 @@ async function loadDelay() {
 module.exports = class TradingSystem {
     current_action = STAND;
     indicators = {};
-    tvtime = [];
-    tvopen = [];
-    tvhigh = [];
-    tvlow = [];
-    tvclose = [];
-    tvvolume = [];
-    balance_logs = [];
-    pnl_logs = [];
-    positions_logs = [];
     price = 0;
     usdt = 50000;
     debug = false;
@@ -69,8 +60,8 @@ module.exports = class TradingSystem {
 
             if (chart.periods[0].time != this.lasttime) {
                 this.lasttime = chart.periods[0].time
-                const period = this.chart.periods[0];
-                console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${period.time} Open:${period.open} High:${period.max} Low:${period.min} Close:${period.close} Volume:${period.volume}`);
+                // const period = this.chart.periods[0];
+                console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${this.period.time} Open:${this.period.open} High:${this.period.max} Low:${this.period.min} Close:${this.period.close} Volume:${this.period.volume}`);
                 // this.trade();
                 this.onClose();
             } else {
@@ -141,7 +132,7 @@ module.exports = class TradingSystem {
     }
 
     slLongOnClose() {
-        console.log(`[System::slLongOnClose] seeking for SL Long Signal for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::slLongOnClose] seeking for SL Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         if (this.current_action !== LONG) {
             return;
         }
@@ -156,7 +147,7 @@ module.exports = class TradingSystem {
     }
 
     tpLongOnClose() {
-        console.log(`[System::tpLongOnClose] seeking for TP Long Signal for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::tpLongOnClose] seeking for TP Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         if (this.current_action !== LONG) {
             return;
         }
@@ -169,7 +160,7 @@ module.exports = class TradingSystem {
 
 
     closeLongOnClose() {
-        console.log(`[System::tpLongOnClose] seeking for Close Long Signal for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::tpLongOnClose] seeking for Close Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         if (this.current_action !== LONG) {
             return;
         }
@@ -188,7 +179,7 @@ module.exports = class TradingSystem {
     }
 
     slShortOnClose() {
-        console.log(`[System::slShortOnClose] seeking for SL Short Signal for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::slShortOnClose] seeking for SL Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         if (this.current_action !== SHORT) {
             return;
         }
@@ -207,7 +198,7 @@ module.exports = class TradingSystem {
     }
 
     tpShortOnClose() {
-        console.log(`[System::tpShortOnClose] seeking for TP Short Signal for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::tpShortOnClose] seeking for TP Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         if (this.current_action !== SHORT) {
             return;
         }
@@ -219,7 +210,7 @@ module.exports = class TradingSystem {
     }
 
     closeShortOnClose() {
-        console.log(`[System::closeShortOnClose] seeking for Close Short Signal for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::closeShortOnClose] seeking for Close Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         if (this.current_action !== SHORT) {
             return;
         }
@@ -238,7 +229,7 @@ module.exports = class TradingSystem {
     }
 
     seekLong() {
-        console.log(`[System::seekLong] seeking for Stand from Long for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::seekLong] seeking for Stand from Long for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         // Require prices and indicators
         const current_ema = this.buffer.indicators['TIENEMA'].period;
         const e5 = current_ema['5'];
@@ -252,7 +243,7 @@ module.exports = class TradingSystem {
     }
 
     seekShort() {
-        console.log(`[System::seekShort] seeking for Stand from Short for ${this.exchange_str}:${this.symbol_str}`);
+        console.log(`[System::seekShort] seeking for Stand from Short for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         // Require prices and indicators
         const current_ema = this.buffer.indicators['TIENEMA'].period;
         const e5 = current_ema['5'];
@@ -378,6 +369,6 @@ module.exports = class TradingSystem {
     }
 
     recordPosition() {
-        this.position = this.chart.periods[0];
+        this.position = this.buffer.chart.period;
     }
 }

@@ -25,7 +25,7 @@ async function loadBybitTrading(config) {
 
 async function statistic() {
     bybit = await loadBybitTrading(config);
-    const starttime = 1715677560000
+    const starttime = 1716027360000
     const endtime = Date.now();
     step = 60 * 60 * 1000;
     const results = []
