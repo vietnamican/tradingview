@@ -83,7 +83,6 @@ module.exports = class TradingSystem {
                 this.closeLongOnClose();
                 break;
             case SHORT:
-                console.log(`[System::onClose] on short action for ${this.exchange_str}:${this.symbol_str}`);
                 this.slShortOnClose();
                 this.tpShortOnClose();
                 this.closeShortOnClose();
@@ -121,30 +120,30 @@ module.exports = class TradingSystem {
         const rsi = current_rsi["RSI"]
 
         // Check long
-        const long_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
-        const long_rsi_condition = rsi < 30;
-        if (long_ema_condition && long_rsi_condition) {
-            this.long();
-            this.current_action = LONG;
-            this.recordPosition();
-            return;
-        }
-
-        // Check short
-        const short_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
-        const short_rsi_condition = rsi > 70;
+        const short_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
+        const short_rsi_condition = rsi < 30;
         if (short_ema_condition && short_rsi_condition) {
             this.short();
             this.current_action = SHORT;
             this.recordPosition();
             return;
         }
+
+        // Check short
+        const long_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
+        const long_rsi_condition = rsi > 70;
+        if (long_ema_condition && long_rsi_condition) {
+            this.long();
+            this.current_action = LONG;
+            this.recordPosition();
+            return;
+        }
         return;
     }
 
-    slLongOnClose() {
-        console.log(`[System::slLongOnClose] seeking for SL Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== LONG) {
+    tpShortOnClose() {
+        console.log(`[System::tpShortOnClose] seeking for TP Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+        if (this.current_action !== SHORT) {
             return;
         }
         const close = this.buffer.chart.period.close;
@@ -153,13 +152,13 @@ module.exports = class TradingSystem {
         const downRatio = 0.5;
         if (close < this.position.close - positionRange * downRatio) {
             this.liquidlong();
-            this.current_action = SEEK_LONG;
+            this.current_action = SEEK_SHORT;
         }
     }
 
-    tpLongOnClose() {
-        console.log(`[System::tpLongOnClose] seeking for TP Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== LONG) {
+    slShortOnClose() {
+        console.log(`[System::slShortOnClose] seeking for SL Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+        if (this.current_action !== SHORT) {
             return;
         }
         const close = this.buffer.chart.period.close;
@@ -168,14 +167,14 @@ module.exports = class TradingSystem {
         const downRatio = 0.5;
         if (close > this.position.close + positionRange * downRatio) {
             this.liquidlong();
-            this.current_action = SEEK_LONG;
+            this.current_action = SEEK_SHORT;
         }
     }
 
 
-    closeLongOnClose() {
-        console.log(`[System::tpLongOnClose] seeking for Close Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== LONG) {
+    closeShortOnClose() {
+        console.log(`[System::closeShortOnClose] seeking for Close Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+        if (this.current_action !== SHORT) {
             return;
         }
         // Require prices and indicators
@@ -192,9 +191,9 @@ module.exports = class TradingSystem {
         }
     }
 
-    slShortOnClose() {
-        console.log(`[System::slShortOnClose] seeking for SL Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== SHORT) {
+    tpLongOnClose() {
+        console.log(`[System::slShortOnClose] seeking for TP Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+        if (this.current_action !== LONG) {
             return;
         }
         // Require prices and indicators
@@ -207,13 +206,13 @@ module.exports = class TradingSystem {
         const downRatio = 0.5;
         if (close > this.position.close + positionRange * downRatio) {
             this.liquidshort();
-            this.current_action = SEEK_SHORT;
+            this.current_action = SEEK_LONG;
         }
     }
 
-    tpShortOnClose() {
-        console.log(`[System::tpShortOnClose] seeking for TP Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== SHORT) {
+    slLongOnClose() {
+        console.log(`[System::slLongOnClose] seeking for SL Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+        if (this.current_action !== LONG) {
             return;
         }
         // Require prices and indicators
@@ -226,13 +225,13 @@ module.exports = class TradingSystem {
         const downRatio = 0.5;
         if (close < this.position.close - positionRange * downRatio) {
             this.liquidshort();
-            this.current_action = SEEK_SHORT;
+            this.current_action = SEEK_LONG;
         }
     }
 
-    closeShortOnClose() {
-        console.log(`[System::closeShortOnClose] seeking for Close Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== SHORT) {
+    closeLongOnClose() {
+        console.log(`[System::closeLongOnClose] seeking for Close Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+        if (this.current_action !== LONG) {
             return;
         }
         // Require prices and indicators
@@ -249,8 +248,8 @@ module.exports = class TradingSystem {
         }
     }
 
-    seekLong() {
-        console.log(`[System::seekLong] seeking for Stand from Long for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+    seekShort() {
+        console.log(`[System::seekShort] seeking for Stand from Short for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         // Require prices and indicators
         const current_ema = this.buffer.indicators['TIENEMA'].period;
         const e5 = current_ema['5'];
@@ -263,8 +262,8 @@ module.exports = class TradingSystem {
         }
     }
 
-    seekShort() {
-        console.log(`[System::seekShort] seeking for Stand from Short for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
+    seekLong() {
+        console.log(`[System::seekLong] seeking for Stand from Long for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
         // Require prices and indicators
         const current_ema = this.buffer.indicators['TIENEMA'].period;
         const e5 = current_ema['5'];

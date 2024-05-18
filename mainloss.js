@@ -1,6 +1,6 @@
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const System = require("./Systems/SystemLoss");
+const System = require("./Systems/SystemLossSL");
 
 const config = {
     "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
