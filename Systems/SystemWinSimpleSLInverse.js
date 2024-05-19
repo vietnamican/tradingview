@@ -131,9 +131,8 @@ module.exports = class TradingSystem {
         const rsi_slow = current_rsi["RSIbased_MA_2"];
 
         // Check short
-        const short_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
-        const short_rsi_condition = rsi > 70;
-        if (short_ema_condition && short_rsi_condition) {
+        const short_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100;
+        if (short_ema_condition) {
             this.short();
             this.current_action = SHORT;
             this.recordPosition();
@@ -141,9 +140,8 @@ module.exports = class TradingSystem {
         }
 
         // Check long
-        const long_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
-        const long_rsi_condition = rsi < 30;
-        if (long_ema_condition && long_rsi_condition) {
+        const long_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100
+        if (long_ema_condition) {
             this.long();
             this.current_action = LONG;
             this.recordPosition();
@@ -344,49 +342,6 @@ module.exports = class TradingSystem {
         const qty = this.round(amount / price);
         const params = {
             "category": "linear",
-            "side": "Buy",
-            "orderType": "Market"
-        }
-        console.log(`[${moment().format()}] Buy ${qty} ${this.symbol_str} with price ${price}`);
-        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
-            .then(result => {
-                this.qty = qty;
-                this.price = price;
-            })
-            .catch(error => {
-                console.log(`Error occured when buy ${qty} ${this.symbol_str} with price ${price}`);
-                console.error('Error:', error);
-                this.current_action = STAND;
-            });
-    }
-
-    async liquidlong() {
-        const qty = this.qty;
-        const price = this.price;
-        const params = {
-            "category": "linear",
-            "side": "Sell",
-            "orderType": "Market"
-        }
-        console.log(`[${moment().format()}] Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
-        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
-            .then(result => {
-                this.qty = 0;
-                this.price = 0;
-            })
-            .catch(error => {
-                console.log(`Error occured when liquid byt ${qty} ${this.symbol_str} with price ${price}`);
-                console.error('Error:', error);
-                this.current_action = LONG;
-            });
-    }
-
-    async short() {
-        const amount = 1000; // 100 USDT
-        const price = this.chart.periods[0].close;
-        const qty = this.round(amount / price);
-        const params = {
-            "category": "linear",
             "side": "Sell",
             "orderType": "Market"
         }
@@ -403,7 +358,7 @@ module.exports = class TradingSystem {
             });
     }
 
-    async liquidshort() {
+    async liquidlong() {
         const qty = this.qty;
         const price = this.price;
         const params = {
@@ -419,6 +374,49 @@ module.exports = class TradingSystem {
             })
             .catch(error => {
                 console.log(`Error occured when liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = LONG;
+            });
+    }
+
+    async short() {
+        const amount = 1000; // 100 USDT
+        const price = this.chart.periods[0].close;
+        const qty = this.round(amount / price);
+        const params = {
+            "category": "linear",
+            "side": "Buy",
+            "orderType": "Market"
+        }
+        console.log(`[${moment().format()}] Buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = qty;
+                this.price = price;
+            })
+            .catch(error => {
+                console.log(`Error occured when buy ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = STAND;
+            });
+    }
+
+    async liquidshort() {
+        const qty = this.qty;
+        const price = this.price;
+        const params = {
+            "category": "linear",
+            "side": "Sell",
+            "orderType": "Market"
+        }
+        console.log(`[${moment().format()}] Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = 0;
+                this.price = 0;
+            })
+            .catch(error => {
+                console.log(`Error occured when liquid buy ${qty} ${this.symbol_str} with price ${price}`);
                 console.error('Error:', error);
                 this.current_action = SHORT;
             });

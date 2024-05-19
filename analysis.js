@@ -23,9 +23,18 @@ async function loadBybitTrading(config) {
     return exchange;
 }
 
+function convertToEpochTime(formattedDateTime) {
+    const date = new Date(formattedDateTime);
+    const epochTime = date.getTime();
+    return epochTime;
+}
+
 async function statistic() {
     bybit = await loadBybitTrading(config);
-    const starttime = 1716045120000
+    const starttimeFormatted = "2024-05-19T20:10:00+07:00"
+    const starttime = convertToEpochTime(starttimeFormatted);
+    console.log(starttime);
+    // const starttime = 1716045120000
     const endtime = Date.now();
     step = 60 * 60 * 1000;
     const results = []
@@ -55,17 +64,7 @@ async function statistic() {
 
     })
     console.log(sum, numGainPnl, numLossPnl);
-    // for (const pieceoftimeend in ranges) {
-    //     console.log(pieceoftimeend);
-    //     const pieceoftimestart = pieceoftimeend - step;
-    //     console.log(pieceoftimestart, pieceoftimeend);
-
-    //     const result = await bybit.fetchPositionsHistory(symbol = "", pieceoftimestart, limit = 100, params = { "caterogy": "linear", "endTime": pieceoftimeend });
-    //     results.push(...result);
-    //     console.log(results.length);
-    // }
     return outer_result;
-    // return results.map((v)=>Number(v.info.closedPnl));
 }
 
 function reduceByKey(array, key) {
@@ -79,12 +78,12 @@ function reduceByKey(array, key) {
     }, {});
 }
 
-function mapSumByKey(value){
+function mapSumByKey(value) {
     let sum = 0;
-    value.forEach((v)=>{
+    value.forEach((v) => {
         sum += v.pnl;
     })
-    return {...value, "sum": sum};
+    return { ...value, "sum": sum };
 }
 
 async function main() {
@@ -92,14 +91,14 @@ async function main() {
     await import("delay").then((val) => { delay = val.default });
     results = await statistic();
     results = reduceByKey(results, "pair");
-    Object.keys(results).map((r)=>{
+    Object.keys(results).map((r) => {
         let sum = 0;
-        
-        results[r].forEach((v)=>{
+
+        results[r].forEach((v) => {
             sum += v.pnl;
         })
 
-        results[r] = {...results[r], "sum": sum}
+        results[r] = { ...results[r], "sum": sum }
     })
     console.log(results);
     // await delay(5000);
