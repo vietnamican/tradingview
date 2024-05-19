@@ -20,28 +20,8 @@ async function loadDelay() {
 }
 
 module.exports = class TradingSystem {
-    exchange_str = "";
-    exchange = null;
-    chart = null;
-    symbol_str = "";
-    timeframe_str = "";
-    indicators = {};
-    current_action;
-    tvtime = [];
-    tvopen = [];
-    tvhigh = [];
-    tvlow = [];
-    tvclose = [];
-    tvvolume = [];
-    qty = 0;
-    price = 0;
-    precision = 1;
-    loop = [1, 2, 3];
-    finished = false;
-    usdt = 50000;
-
     // mode: forward or replay
-    constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, options) {
+    constructor() {
 
     }
     init() { }

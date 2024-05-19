@@ -37,7 +37,11 @@ async function requiredata(file) {
     return balances
 }
 
-main("/home/xltt/TradingBot/tradingview/Systems/balance.csv")
+root = "D:/DataScience/TradingBot/tradingview/";
+
+path = root +  "Systems/balance.csv"
+
+main(path)
 
 
 // var asciichart = require ('asciichart')

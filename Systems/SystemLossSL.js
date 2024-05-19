@@ -151,7 +151,7 @@ module.exports = class TradingSystem {
         const positionRange = this.position.open - this.position.close;
         const downRatio = 0.5;
         if (close < this.position.close - positionRange * downRatio) {
-            this.liquidlong();
+            this.liquidshort();
             this.current_action = SEEK_SHORT;
         }
     }
@@ -166,7 +166,7 @@ module.exports = class TradingSystem {
         const positionRange = this.position.open - this.position.close;
         const downRatio = 0.5;
         if (close > this.position.close + positionRange * downRatio) {
-            this.liquidlong();
+            this.liquidshort();
             this.current_action = SEEK_SHORT;
         }
     }
@@ -186,7 +186,7 @@ module.exports = class TradingSystem {
         // Take TP
         // Change action to STAND
         if (e5 > e10) {
-            this.liquidlong();
+            this.liquidshort();
             this.current_action = STAND;
         }
     }
@@ -205,7 +205,7 @@ module.exports = class TradingSystem {
         const positionRange = this.position.close - this.position.open;
         const downRatio = 0.5;
         if (close > this.position.close + positionRange * downRatio) {
-            this.liquidshort();
+            this.liquidlong();
             this.current_action = SEEK_LONG;
         }
     }
@@ -224,7 +224,7 @@ module.exports = class TradingSystem {
         const positionRange = this.position.close - this.position.open;
         const downRatio = 0.5;
         if (close < this.position.close - positionRange * downRatio) {
-            this.liquidshort();
+            this.liquidlong();
             this.current_action = SEEK_LONG;
         }
     }
@@ -243,7 +243,7 @@ module.exports = class TradingSystem {
         // Take TP
         // Change action to STAND
         if (e5 < e10) {
-            this.liquidshort();
+            this.liquidlong();
             this.current_action = STAND;
         }
     }

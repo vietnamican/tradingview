@@ -18,19 +18,6 @@ async function loadDelay() {
 }
 
 module.exports = class TradingSystem {
-    current_action = STAND;
-    indicators = {};
-    tvtime = [];
-    tvopen = [];
-    tvhigh = [];
-    tvlow = [];
-    tvclose = [];
-    tvvolume = [];
-    balance_logs = [];
-    pnl_logs = [];
-    positions_logs = [];
-    qtyStep = 0.1;
-    price = 0;
     usdt = 50000;
     debug = false;
 
@@ -47,39 +34,58 @@ module.exports = class TradingSystem {
         this.init();
     }
     init() {
-        this.tvindicator = {};
-        this.tvindicator["TIENEMA"] = []
-        this.tvindicator["TIENRSI"] = []
-        this.options = this.options || {};
+        
+        this.buffer = {};
+        this.buffer.times = [];
+        this.buffer.opens = [];
+        this.buffer.highs = [];
+        this.buffer.lows = [];
+        this.buffer.closes = [];
+        this.buffer.indicators = {};
+        this.buffer.indicators['TIENEMA'] = [];
+        this.buffer.indicators['TIENRSI'] = [];
 
+        this.logs = {};
+        this.logs.positions = [];
+        this.logs.balances = [];
+        this.logs.pnls = [];
+        this.logs.actions = [];
+
+        this.market = {};
+        this.market.qtyStep = 0.1;
+        this.market.price = 0;
+        
+        this.action = STAND;
+
+        this.options = this.options || {};
         if (!this.options.history_length) {
             this.options.history_length = 10;
         }
     }
     async updateStatus(i) {
-        this.tvtime.unshift(this.chart.periods[i].time);
-        this.tvopen.unshift(this.chart.periods[i].open);
-        this.tvhigh.unshift(this.chart.periods[i].high);
-        this.tvlow.unshift(this.chart.periods[i].low);
-        this.tvclose.unshift(this.chart.periods[i].close);
-        this.tvvolume.unshift(this.chart.periods[i].volume);
+        this.buffer.times.unshift(this.chart.periods[i].time);
+        this.buffer.opens.unshift(this.chart.periods[i].open);
+        this.buffer.highs.unshift(this.chart.periods[i].high);
+        this.buffer.lows.unshift(this.chart.periods[i].low);
+        this.buffer.closes.unshift(this.chart.periods[i].close);
+        this.buffer.volumes.unshift(this.chart.periods[i].volume);
 
-        this.tvtime.splice(this.options.history_length);
-        this.tvopen.splice(this.options.history_length);
-        this.tvhigh.splice(this.options.history_length);
-        this.tvlow.splice(this.options.history_length);
-        this.tvclose.splice(this.options.history_length);
-        this.tvvolume.splice(this.options.history_length);
+        this.buffer.times.splice(this.options.history_length);
+        this.buffer.opens.splice(this.options.history_length);
+        this.buffer.highs.splice(this.options.history_length);
+        this.buffer.lows.splice(this.options.history_length);
+        this.buffer.closes.splice(this.options.history_length);
+        this.buffer.volumes.splice(this.options.history_length);
 
-        this.tvindicator["TIENEMA"].unshift(this.indicators["TIENEMA"].periods[i]);
-        this.tvindicator["TIENRSI"].unshift(this.indicators["TIENRSI"].periods[i]);
+        this.buffer.indicators["TIENEMA"].unshift(this.indicators["TIENEMA"].periods[i]);
+        this.buffer.indicators["TIENRSI"].unshift(this.indicators["TIENRSI"].periods[i]);
 
-        this.tvindicator["TIENEMA"].splice(this.options.history_length);
-        this.tvindicator["TIENRSI"].splice(this.options.history_length);
+        this.buffer.indicators["TIENEMA"].splice(this.options.history_length);
+        this.buffer.indicators["TIENRSI"].splice(this.options.history_length);
 
-        if (isWholeDay(Number(this.tvtime[0]))) {
+        if (isWholeDay(Number(this.buffer.times[0]))) {
             const balance = this.balance();
-            this.balance_logs.push({ "time": this.tvtime[0], "balance": balance });
+            this.balance_logs.push({ "time": this.buffer.times[0], "balance": balance });
         }
     }
     async start() {
@@ -147,8 +153,8 @@ module.exports = class TradingSystem {
 
     takePosition() {
         // Require prices and indicators
-        const close = this.tvclose[0];
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const close = this.buffer.closes[0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
         const e20 = current_ema['20'];
@@ -180,8 +186,8 @@ module.exports = class TradingSystem {
 
     slLongOnClose() {
         // Require prices and indicators        
-        const close = this.tvclose[0];
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const close = this.buffer.closes[0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
         const e20 = current_ema['20'];
@@ -208,7 +214,7 @@ module.exports = class TradingSystem {
 
     closeLongOnClose() {
         // Require prices and indicators
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
 
@@ -224,8 +230,8 @@ module.exports = class TradingSystem {
 
     slShortOnClose() {
         // Require prices and indicators
-        const close = this.tvclose[0];
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const close = this.buffer.closes[0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
         const e20 = current_ema['20'];
@@ -252,7 +258,7 @@ module.exports = class TradingSystem {
 
     closeShortOnClose() {
         // Require prices and indicators
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
 
@@ -269,7 +275,7 @@ module.exports = class TradingSystem {
 
     seekLong() {
         // Require prices and indicators
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
 
@@ -282,7 +288,7 @@ module.exports = class TradingSystem {
 
     seekShort() {
         // Require prices and indicators
-        const current_ema = this.tvindicator["TIENEMA"][0];
+        const current_ema = this.buffer.indicators["TIENEMA"][0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
 
@@ -296,9 +302,9 @@ module.exports = class TradingSystem {
 
     // triggered by takePosition
     long() {
-        const time = this.tvtime[0];
+        const time = this.buffer.times[0];
         const amount = 50000; // 100 USDT
-        const price = this.tvclose[0];
+        const price = this.buffer.closes[0];
         const qty = this.round(amount / price);
 
         console.log(`[${moment.unix(time / 1000).format()}] ${time} Buy ${qty} ${this.symbol_str} with price ${price}`);
@@ -310,12 +316,12 @@ module.exports = class TradingSystem {
 
     // triggerd by slLongOnClose/tpLongOnClose/closeLongOnClose
     liquidlong() {
-        const time = this.tvtime[0];
+        const time = this.buffer.times[0];
         const qty = this.qty;
-        const price = this.tvclose[0];
+        const price = this.buffer.closes[0];
         this.record_pnl(qty, LONG, this.price, price);
 
-        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.buffer.times[0]} Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
 
         this.commit('sell', price, qty);
         this.price = 0;
@@ -324,12 +330,12 @@ module.exports = class TradingSystem {
 
     // triggered by takePosition
     short() {
-        const time = this.tvtime[0];
+        const time = this.buffer.times[0];
         const amount = 50000; // 100 USDT
-        const price = this.tvclose[0];
+        const price = this.buffer.closes[0];
         const qty = this.round(amount / price);
 
-        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Sell ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.buffer.times[0]} Sell ${qty} ${this.symbol_str} with price ${price}`);
 
         this.commit('sell', price, qty);
         this.qty = qty;
@@ -338,12 +344,12 @@ module.exports = class TradingSystem {
 
     // triggerd by slShortOnClose/tpShortOnClose/closeShortOnClose
     liquidshort() {
-        const time = this.tvtime[0];
+        const time = this.buffer.times[0];
         const qty = this.qty;
-        const price = this.tvclose[0];
+        const price = this.buffer.closes[0];
         this.record_pnl(qty, SHORT, this.price, price);
 
-        console.log(`[${moment.unix(time / 1000).format()}] ${this.tvtime[0]} Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+        console.log(`[${moment.unix(time / 1000).format()}] ${this.buffer.times[0]} Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
 
         this.commit('buy', price, qty);
         this.qty = 0;
@@ -360,7 +366,7 @@ module.exports = class TradingSystem {
 
     balance() {
         let total = 0;
-        const time = this.tvtime[0];
+        const time = this.buffer.times[0];
         if (this.current_action == LONG) {
             total = this.usdt + this.price * this.qty;
             total -= this.price * this.qty * 0.055 / 100;
@@ -377,19 +383,19 @@ module.exports = class TradingSystem {
     recordPosition() {
         const position = {};
         position.action = this.current_action;
-        position.time = this.tvtime[0];
-        position.open = this.tvopen[0];
-        position.high = this.tvhigh[0];
-        position.low = this.tvlow[0];
-        position.close = this.tvclose[0];
-        position.volume = this.tvvolume[0];
+        position.time = this.buffer.times[0];
+        position.open = this.buffer.opens[0];
+        position.high = this.buffer.highs[0];
+        position.low = this.buffer.lows[0];
+        position.close = this.buffer.closes[0];
+        position.volume = this.buffer.volumes[0];
         position.index = 0;
         this.position = position;
         this.positions_logs.push(position);
     }
 
     record_pnl(qty, action, first_price, second_price) {
-        const time = this.tvtime[0];
+        const time = this.buffer.times[0];
         let pnl = 0;
         if (action === LONG) {
             pnl = (second_price - first_price) * qty;
