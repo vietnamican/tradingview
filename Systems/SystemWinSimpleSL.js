@@ -141,7 +141,7 @@ module.exports = class TradingSystem {
         // Check long
         const long_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
         const long_rsi_condition = rsi < 30;
-        if (long_ema_condition) {
+        if (long_ema_condition && long_rsi_condition) {
             this.long();
             this.current_action = LONG;
             this.recordPosition();
