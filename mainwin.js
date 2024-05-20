@@ -1,7 +1,7 @@
 const moment = require("moment");
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const System = require("./Systems/SystemWin");
+const System = require("./Systems/SystemWinn");
 
 const config = {
     "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
