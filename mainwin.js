@@ -91,12 +91,15 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
     charts[exchange_str][symbol_str] = charts[exchange_str][symbol_str] || {};
     charts[exchange_str][symbol_str][timeframe_str] = chart;
 
-    chart.onError((...err)=>{
+    chart.onError((...err) => {
         console.log(`[${moment().format()}] Chart ${exchange_str}:${symbol_str} got error: ${err}`);
     })
 
     indicList = await TradingView.getPrivateIndicators(config.tvsessionid);
     await indicList.forEach(async (indic) => {
+        if (indic.name === "TIENADX") {
+            return;
+        }
         const privateIndic = await indic.get();
         console.log(`Indicator ${indic.name} for ${exchange_str}:${symbol_str} loading...`)
 
@@ -110,7 +113,7 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
             console.log(`Indicator ${indic.name} for ${exchange_str}:${symbol_str} loaded!`);
         });
 
-        indicator.onError((...err)=>{
+        indicator.onError((...err) => {
             console.log(`[${moment().format()}] Indicator ${indic.name} for ${exchange_str}:${symbol_str} got error: ${err}`);
         })
     });
