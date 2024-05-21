@@ -133,6 +133,7 @@ module.exports = class TradingSystem {
         const short_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
         const short_rsi_condition = rsi > 70;
         if (short_ema_condition && short_rsi_condition) {
+            console.log(`[${moment().format()}] Take Short: Current ${close} e5: ${e5}, e10: ${e10}, e20: ${e20}, e50: ${e50}, e100: ${e100}, e200: ${e200}, rsi: ${rsi}`);
             this.short();
             this.current_action = SHORT;
             this.recordPosition();
@@ -143,6 +144,7 @@ module.exports = class TradingSystem {
         const long_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
         const long_rsi_condition = rsi < 30;
         if (long_ema_condition && long_rsi_condition) {
+            console.log(`[${moment().format()}] Take Long: Current ${close} e5: ${e5}, e10: ${e10}, e20: ${e20}, e50: ${e50}, e100: ${e100}, e200: ${e200}, rsi: ${rsi}`);
             this.long();
             this.current_action = LONG;
             this.recordPosition();

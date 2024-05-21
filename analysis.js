@@ -32,7 +32,7 @@ function convertToEpochTime(formattedDateTime) {
 
 async function statistic() {
     bybit = await loadBybitTrading(config);
-    const starttimeFormatted = "2024-05-20T23:00:00+07:00"
+    const starttimeFormatted = "2024-05-21T23:10:00+07:00"
     const starttime = convertToEpochTime(starttimeFormatted);
     console.log(starttime);
     // const starttime = 1716045120000
@@ -48,7 +48,7 @@ async function statistic() {
         const result = await bybit.fetchPositionsHistory(symbol = "", pieceoftimestart, limit = 100, params = { "caterogy": "linear", "endTime": pieceoftimeend });
         results.push(...result);
         console.log(results.length);
-        console.log(results[0]);
+        // console.log(results[0]);
         // console.log(results[0].info.closedPnl);
 
     }
