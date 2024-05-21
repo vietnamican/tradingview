@@ -1,7 +1,7 @@
 const moment = require("moment");
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const System = require("./Systems/SystemWin");
+const System = require("./Systems/SystemWinSimpleSL");
 
 const config = {
     "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
@@ -14,40 +14,40 @@ const config = {
 
 const symbols = [
     "NEARUSDT",
-    "AVAXUSDT",
-    "GRTUSDT",
-    "RNDRUSDT",
-    "AGIXUSDT",
-    "ARUSDT",
-    "BOMEUSDT",
-    "LINKUSDT",
-    "MATICUSDT",
-    "OMNIUSDT",
-    "OPUSDT",
-    "SSVUSDT",
-    "WLDUSDT",
-    "SOLUSDT",
-    "BTCUSDT",
-    "ETHUSDT",
-    "ETHFIUSDT",
-    "WIFUSDT",
-    "LTCUSDT",
-    "BCHUSDT",
-    "TRXUSDT",
-    "ADAUSDT",
-    "DOGEUSDT",
-    "PYTHUSDT",
-    "MEWUSDT",
-    "ARBUSDT",
-    "UNIUSDT",
-    "ICPUSDT",
-    "THETAUSDT",
-    "UMAUSDT",
-    "FRONTUSDT",
-    "PEOPLEUSDT",
-    "MOVRUSDT",
-    "XRPUSDT",
-    "DOTUSDT",
+    // "AVAXUSDT",
+    // "GRTUSDT",
+    // "RNDRUSDT",
+    // "AGIXUSDT",
+    // "ARUSDT",
+    // "BOMEUSDT",
+    // "LINKUSDT",
+    // "MATICUSDT",
+    // "OMNIUSDT",
+    // "OPUSDT",
+    // "SSVUSDT",
+    // "WLDUSDT",
+    // "SOLUSDT",
+    // "BTCUSDT",
+    // "ETHUSDT",
+    // "ETHFIUSDT",
+    // "WIFUSDT",
+    // "LTCUSDT",
+    // "BCHUSDT",
+    // "TRXUSDT",
+    // "ADAUSDT",
+    // "DOGEUSDT",
+    // "PYTHUSDT",
+    // "MEWUSDT",
+    // "ARBUSDT",
+    // "UNIUSDT",
+    // "ICPUSDT",
+    // "THETAUSDT",
+    // "UMAUSDT",
+    // "FRONTUSDT",
+    // "PEOPLEUSDT",
+    // "MOVRUSDT",
+    // "XRPUSDT",
+    // "DOTUSDT",
 ];
 
 // const symbols = ["NEARUSDT",  "AVAXUSDT"];
@@ -97,7 +97,7 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
 
     indicList = await TradingView.getPrivateIndicators(config.tvsessionid);
     await indicList.forEach(async (indic) => {
-        if (indic.name === "TIENADX") {
+        if (indic.name === "TIENRSI") {
             return;
         }
         const privateIndic = await indic.get();

@@ -31,7 +31,6 @@ module.exports = class TradingSystem {
         this.indicators = indicators;
         this.debug = false;
         this.init();
-
     }
     init() {
         axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
@@ -83,7 +82,6 @@ module.exports = class TradingSystem {
                 this.closeLongOnClose();
                 break;
             case SHORT:
-                console.log(`[System::onClose] on short action for ${this.exchange_str}:${this.symbol_str}`);
                 this.slShortOnClose();
                 this.tpShortOnClose();
                 this.closeShortOnClose();

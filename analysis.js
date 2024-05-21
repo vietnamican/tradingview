@@ -1,4 +1,5 @@
 const ccxt = require("ccxt");
+const moment = require("moment");
 const { range } = require("./utils");
 const asciichart = require('asciichart');
 
@@ -31,7 +32,7 @@ function convertToEpochTime(formattedDateTime) {
 
 async function statistic() {
     bybit = await loadBybitTrading(config);
-    const starttimeFormatted = "2024-05-19T20:10:00+07:00"
+    const starttimeFormatted = "2024-05-20T23:00:00+07:00"
     const starttime = convertToEpochTime(starttimeFormatted);
     console.log(starttime);
     // const starttime = 1716045120000
@@ -47,6 +48,7 @@ async function statistic() {
         const result = await bybit.fetchPositionsHistory(symbol = "", pieceoftimestart, limit = 100, params = { "caterogy": "linear", "endTime": pieceoftimeend });
         results.push(...result);
         console.log(results.length);
+        console.log(results[0]);
         // console.log(results[0].info.closedPnl);
 
     }
@@ -57,10 +59,10 @@ async function statistic() {
     results.forEach((result) => {
         // console.log(result)
         let pnl = Number(result.info.closedPnl);
-        // pnl = pnl <= 0 ? -3 : pnl;
+        pnl = pnl <= -10 ? -10 : pnl;
         sum += Number(pnl);
         pnl > 0 ? numGainPnl++ : numLossPnl++;
-        outer_result.push({ pnl, "pair": result.info.symbol });
+        outer_result.push({ pnl, "pair": result.info.symbol, "start": moment.unix(result.timestamp / 1000).format(), "end": moment.unix(result.endTime / 1000).format() });
 
     })
     console.log(sum, numGainPnl, numLossPnl);
