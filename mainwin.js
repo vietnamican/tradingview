@@ -97,7 +97,7 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
 
     indicList = await TradingView.getPrivateIndicators(config.tvsessionid);
     await indicList.forEach(async (indic) => {
-        if (indic.name === "TIENRSI") {
+        if (indic.name === "TIENADX") {
             return;
         }
         const privateIndic = await indic.get();
