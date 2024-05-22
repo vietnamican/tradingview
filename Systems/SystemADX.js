@@ -4,8 +4,10 @@ const axios = require("axios");
 const LONG = 0;
 const SHORT = 1;
 const STAND = 2;
-const SEEK_LONG = 3;
-const SEEK_SHORT = 4;
+const WAIT_LONG = 3;
+const WAIT_SHORT = 4;
+const TP_LONG = 5;
+const TP_SHORT = 6;
 
 async function loadDelay() {
     delay = null;
@@ -38,11 +40,13 @@ module.exports = class TradingSystem {
             this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
         });
         this.options = this.options || {};
+        this.options.slRatio = 0.01;
+        this.options.tpRatio = 0.006;
         this.buffer = {};
         this.buffer.chart = {};
         this.buffer.indicators = {};
         this.buffer.indicators["TIENEMA"] = {};
-        this.buffer.indicators["TIENRSI"] = {};
+        this.buffer.indicators["TIENADX"] = {};
         this.isFirst = true;
     }
     start() {
@@ -54,8 +58,8 @@ module.exports = class TradingSystem {
                 this.isFirst = false;
                 this.lasttime = chart.periods[0].time;
                 this.buffer.chart.period = this.chart.periods[0];
-                this.buffer.indicators['TIENEMA'].period = this.indicators['TIENEMA'].periods[0];
-                this.buffer.indicators['TIENRSI'].period = this.indicators['TIENRSI'].periods[0];
+                this.buffer.indicators['TIENEMA'].periods = [this.indicators['TIENEMA'].periods[0], this.indicators['TIENEMA'].periods[1], this.indicators['TIENEMA'].periods[2], this.indicators['TIENEMA'].periods[3]];
+                this.buffer.indicators['TIENADX'].periods = [this.indicators['TIENADX'].periods[0], this.indicators['TIENADX'].periods[1], this.indicators['TIENADX'].periods[2], this.indicators['TIENADX'].periods[3]];
             }
 
             if (chart.periods[0].time != this.lasttime) {
@@ -65,9 +69,10 @@ module.exports = class TradingSystem {
                 this.onClose();
             } else {
                 this.buffer.chart.period = this.chart.periods[0];
-                this.buffer.indicators['TIENEMA'].period = this.indicators['TIENEMA'].periods[0];
-                this.buffer.indicators['TIENRSI'].period = this.indicators['TIENRSI'].periods[0];
-                this.onUpdate();
+                this.buffer.indicators['TIENEMA'].periods = [this.indicators['TIENEMA'].periods[0], this.indicators['TIENEMA'].periods[1], this.indicators['TIENEMA'].periods[2], this.indicators['TIENEMA'].periods[3]];
+                this.buffer.indicators['TIENADX'].periods = [this.indicators['TIENADX'].periods[0], this.indicators['TIENADX'].periods[1], this.indicators['TIENADX'].periods[2], this.indicators['TIENADX'].periods[3]];
+                // this.onUpdate();
+                // console.log(this.buffer.indicators['TIENEMA'].periods);
             }
         });
     }
@@ -77,205 +82,166 @@ module.exports = class TradingSystem {
             case STAND:
                 this.takePosition();
                 break;
+            case WAIT_LONG:
+                this.waitLong();
+                break;
+            case WAIT_SHORT:
+                this.waitShort();
+                break;
             case LONG:
                 this.slLongOnClose();
                 this.tpLongOnClose();
-                this.closeLongOnClose();
                 break;
             case SHORT:
                 this.slShortOnClose();
                 this.tpShortOnClose();
-                this.closeShortOnClose();
                 break;
-            case SEEK_LONG:
-                this.seekLong();
+            case TP_LONG:
+                this.standFromTPLong();
                 break;
-            case SEEK_SHORT:
-                this.seekShort();
+            case TP_SHORT:
+                this.standFromTPShort();
                 break;
         }
     }
 
-    onUpdate() {
-        switch (this.current_action) {
-            case LONG:
-                this.tpLongOnClose();
-                break;
-            case SHORT:
-                this.tpShortOnClose();
-                break;
-        }
-    }
+    // onUpdate() {
+    //     switch (this.current_action) {
+    //         case LONG:
+    //             this.tpLongOnClose();
+    //             break;
+    //         case SHORT:
+    //             this.tpShortOnClose();
+    //             break;
+    //     }
+    // }
 
     takePosition() {
         const close = this.buffer.chart.period.close;
-        const current_ema = this.buffer.indicators['TIENEMA'].period;
-        const e5 = current_ema['5'];
-        const e10 = current_ema['10'];
-        const e20 = current_ema['20'];
-        const e50 = current_ema['50'];
-        const e100 = current_ema['100'];
-        const e200 = current_ema['200'];
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5_2 = current_ema['5_2'];
         const e10_2 = current_ema['10_2'];
         const e20_2 = current_ema['20_2'];
         const e50_2 = current_ema['50_2'];
-        const e100_2 = current_ema['100_2'];
         const e200_2 = current_ema['200_2'];
+        const cap = this.buffer.indicators['TIENADX'].periods; // current_adx_periods
 
-        // Check long
-        const long_ema_condition = close < e5 && e5 < e10 && e10 < e20 && e20 < e50 && e50 < e100 && e100 < e200;
-        const long_rsi_condition = rsi < 30;
-        if (long_ema_condition && long_rsi_condition) {
-            this.long();
-            this.current_action = LONG;
-            this.recordPosition();
+        const current_adx_condition = cap[0]["ADX"] >= 20;
+        const chain_adx_condition = cap[0]["ADX"] > cap[1]["ADX"] && cap[1]["ADX"] > cap[2]["ADX"] && cap[2]["ADX"] > cap[3]["ADX"];
+
+        // Check short
+        const short_ema_condition = close < e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
+        if (short_ema_condition && current_adx_condition && chain_adx_condition) {
+            console.log(`[${moment().format()}] Wait Long: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
+            this.current_action = WAIT_LONG;
             return;
         }
 
-        // Check short
-        const short_ema_condition = close > e5 && e5 > e10 && e10 > e20 && e20 > e50 && e50 > e100 && e100 > e200;
-        const short_rsi_condition = rsi > 70;
-        if (short_ema_condition && short_rsi_condition) {
-            this.short();
-            this.current_action = SHORT;
-            this.recordPosition();
+        // Check long
+        const long_ema_condition = close > e5_2 && e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
+        if (long_ema_condition && current_adx_condition && chain_adx_condition) {
+            console.log(`[${moment().format()}] Wait Short: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
+            this.current_action = WAIT_SHORT;
             return;
         }
         return;
     }
+    waitLong() {
+        const close = this.buffer.chart.period.close;
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+        const e5 = current_ema['5'];
+        const e10 = current_ema['10'];
+        const e20 = current_ema['20'];
+        const e50 = current_ema['50'];
+        const e200 = current_ema['200'];
+
+        const entry_condition = close < e5 && close < e10 && close < e20 && close < e50 && close < e200;
+        if (entry_condition) {
+            console.log(`[${moment().format()}] Long: Current ${close} e5: ${e5}, e10: ${e10}, e20: ${e20}, e50: ${e50}, e200: ${e200}`);
+            this.long();
+            this.current_action = LONG;
+            this.recordPosition();
+        }
+    }
+
+    waitShort() {
+        const close = this.buffer.chart.period.close;
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+        const e5 = current_ema['5'];
+        const e10 = current_ema['10'];
+        const e20 = current_ema['20'];
+        const e50 = current_ema['50'];
+        const e200 = current_ema['200'];
+
+        const entry_condition = close > e5 && close > e10 && close > e20 && close > e50 && close > e200;
+        if (entry_condition) {
+            console.log(`[${moment().format()}] Short: Current ${close} e5: ${e5}, e10: ${e10}, e20: ${e20}, e50: ${e50}, e200: ${e200}`);
+            this.short();
+            this.current_action = SHORT;
+            this.recordPosition();
+        }
+    }
 
     slLongOnClose() {
-        console.log(`[System::slLongOnClose] seeking for SL Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== LONG) {
-            return;
-        }
         const close = this.buffer.chart.period.close;
 
-        const positionRange = this.position.open - this.position.close;
-        const downRatio = 0.5;
-        if (close < this.position.close - positionRange * downRatio) {
+        const sl_price = this.position.close * (1 - this.options.slRatio);
+        const sl_condition = close < sl_price;
+        if (sl_condition) {
+            console.log(`[${moment().format()}] SL Long: Current ${close} SL Price ${sl_price} Position ${this.position.close}`);
             this.liquidlong();
-            this.current_action = SEEK_LONG;
+            this.current_action = STAND;
         }
     }
 
     tpLongOnClose() {
-        console.log(`[System::tpLongOnClose] seeking for TP Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== LONG) {
-            return;
-        }
         const close = this.buffer.chart.period.close;
-
-        const positionRange = this.position.open - this.position.close;
-        const downRatio = 0.5;
-        if (close > this.position.close + positionRange * downRatio) {
-            this.liquidlong();
-            this.current_action = SEEK_LONG;
-        }
-    }
-
-
-    closeLongOnClose() {
-        console.log(`[System::tpLongOnClose] seeking for Close Long Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== LONG) {
-            return;
-        }
-        // Require prices and indicators
-        const current_ema = this.buffer.indicators['TIENEMA'].period;;
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
+        const e20 = current_ema['20'];
+        const e50 = current_ema['50'];
+        const e200 = current_ema['200'];
 
-        // Check TP
-        // Take TP
-        // Change action to STAND
-        if (e5 > e10) {
+        const exit_condition = close > e5 && close > e10 && close > e20 && close > e50 && close > e200;
+
+        const tp_price = this.position.close * (1 + this.options.tpRatio);
+        const tp_condition = close >= tp_price;
+        if (exit_condition && tp_condition) {
+            console.log(`[${moment().format()}] TP Long: Current ${close} SL Price ${sl_price} Position ${this.position.close}`);
             this.liquidlong();
             this.current_action = STAND;
         }
     }
 
     slShortOnClose() {
-        console.log(`[System::slShortOnClose] seeking for SL Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== SHORT) {
-            return;
-        }
-        // Require prices and indicators
         const close = this.buffer.chart.period.close;
 
-        // Check SL
-        // Take SL
-        // Change action to SEEK_SHORT
-        const positionRange = this.position.close - this.position.open;
-        const downRatio = 0.5;
-        if (close > this.position.close + positionRange * downRatio) {
+        const sl_price = this.position.close * (1 + this.options.slRatio);
+        const sl_condition = close > sl_price;
+        if (sl_condition) {
+            console.log(`[${moment().format()}] SL Short: Current ${close} SL Price ${sl_price} Position ${this.position.close}`);
             this.liquidshort();
-            this.current_action = SEEK_SHORT;
+            this.current_action = STAND;
         }
     }
 
     tpShortOnClose() {
-        console.log(`[System::tpShortOnClose] seeking for TP Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== SHORT) {
-            return;
-        }
-        // Require prices and indicators
         const close = this.buffer.chart.period.close;
-
-        // Check SL
-        // Take SL
-        // Change action to SEEK_SHORT
-        const positionRange = this.position.close - this.position.open;
-        const downRatio = 0.5;
-        if (close < this.position.close - positionRange * downRatio) {
-            this.liquidshort();
-            this.current_action = SEEK_SHORT;
-        }
-    }
-
-    closeShortOnClose() {
-        console.log(`[System::closeShortOnClose] seeking for Close Short Signal for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        if (this.current_action !== SHORT) {
-            return;
-        }
-        // Require prices and indicators
-        const current_ema = this.buffer.indicators['TIENEMA'].period;
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
+        const e20 = current_ema['20'];
+        const e50 = current_ema['50'];
+        const e200 = current_ema['200'];
 
-        // Check TP
-        // Take TP
-        // Change action to STAND
-        if (e5 < e10) {
-            this.liquidshort();
-            this.current_action = STAND;
-        }
-    }
+        const exit_condition = close < e5 && close < e10 && close < e20 && close < e50 && close < e200;
 
-    seekLong() {
-        console.log(`[System::seekLong] seeking for Stand from Long for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        // Require prices and indicators
-        const current_ema = this.buffer.indicators['TIENEMA'].period;
-        const e5 = current_ema['5'];
-        const e10 = current_ema['10'];
-
-        // Check Stand condition from Long
-        // Change action to STAND
-        if (e5 > e10) {
-            this.current_action = STAND;
-        }
-    }
-
-    seekShort() {
-        console.log(`[System::seekShort] seeking for Stand from Short for ${this.exchange_str}:${this.symbol_str} position: ${this.position.open} ${this.position.close}`);
-        // Require prices and indicators
-        const current_ema = this.buffer.indicators['TIENEMA'].period;
-        const e5 = current_ema['5'];
-        const e10 = current_ema['10'];
-
-        // Check Stand condition from Short
-        // Change action to STAND
-        if (e5 < e10) {
+        const tp_price = this.position.close * (1 - this.options.tpRatio);
+        const tp_condition = close >= tp_price;
+        if (exit_condition && tp_condition) {
+            console.log(`[${moment().format()}] TP Short: Current ${close} SL Price ${sl_price} Position ${this.position.close}`);
+            this.liquidlong();
             this.current_action = STAND;
         }
     }

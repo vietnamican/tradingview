@@ -59,10 +59,10 @@ async function statistic() {
     results.forEach((result) => {
         // console.log(result)
         let pnl = Number(result.info.closedPnl);
-        pnl = pnl <= -10 ? -10 : pnl;
+        // pnl = pnl <= -10 ? -10 : pnl;
         sum += Number(pnl);
         pnl > 0 ? numGainPnl++ : numLossPnl++;
-        outer_result.push({ pnl, "pair": result.info.symbol, "start": moment.unix(result.timestamp / 1000).format(), "end": moment.unix(result.endTime / 1000).format() });
+        outer_result.push({ pnl, "pair": result.info.symbol });
 
     })
     console.log(sum, numGainPnl, numLossPnl);
