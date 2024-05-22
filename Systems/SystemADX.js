@@ -133,7 +133,7 @@ module.exports = class TradingSystem {
         const short_ema_condition = close < e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
         if (short_ema_condition && current_adx_condition && chain_adx_condition) {
             console.log(`[${moment().format()}] Wait Long: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
-            this.current_action = WAIT_LONG;
+            this.current_action = WAIT_SHORT;
             return;
         }
 
@@ -141,7 +141,7 @@ module.exports = class TradingSystem {
         const long_ema_condition = close > e5_2 && e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
         if (long_ema_condition && current_adx_condition && chain_adx_condition) {
             console.log(`[${moment().format()}] Wait Short: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
-            this.current_action = WAIT_SHORT;
+            this.current_action = WAIT_LONG;
             return;
         }
         return;
@@ -208,7 +208,7 @@ module.exports = class TradingSystem {
         const tp_price = this.position.close * (1 + this.options.tpRatio);
         const tp_condition = close >= tp_price;
         if (exit_condition && tp_condition) {
-            console.log(`[${moment().format()}] TP Long: Current ${close} SL Price ${sl_price} Position ${this.position.close}`);
+            console.log(`[${moment().format()}] TP Long: Current ${close} TP Price ${tp_price} Position ${this.position.close}`);
             this.liquidlong();
             this.current_action = STAND;
         }
@@ -240,7 +240,7 @@ module.exports = class TradingSystem {
         const tp_price = this.position.close * (1 - this.options.tpRatio);
         const tp_condition = close >= tp_price;
         if (exit_condition && tp_condition) {
-            console.log(`[${moment().format()}] TP Short: Current ${close} SL Price ${sl_price} Position ${this.position.close}`);
+            console.log(`[${moment().format()}] TP Short: Current ${close} TP Price ${tp_price} Position ${this.position.close}`);
             this.liquidlong();
             this.current_action = STAND;
         }
