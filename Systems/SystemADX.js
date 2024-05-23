@@ -9,12 +9,6 @@ const WAIT_SHORT = 4;
 const TP_LONG = 5;
 const TP_SHORT = 6;
 
-async function loadDelay() {
-    delay = null;
-    await import("delay").then((val) => { delay = val.default });
-    return delay;
-}
-
 module.exports = class TradingSystem {
     current_action = STAND;
     indicators = {};
@@ -33,8 +27,8 @@ module.exports = class TradingSystem {
         this.indicators = indicators;
         this.debug = false;
         this.init();
-
     }
+
     init() {
         axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
             this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
@@ -49,6 +43,7 @@ module.exports = class TradingSystem {
         this.buffer.indicators["TIENADX"] = {};
         this.isFirst = true;
     }
+
     start() {
         const chart = this.chart;
         chart.onUpdate(() => { // When price changes
@@ -58,8 +53,8 @@ module.exports = class TradingSystem {
                 this.isFirst = false;
                 this.lasttime = chart.periods[0].time;
                 this.buffer.chart.period = this.chart.periods[0];
-                this.buffer.indicators['TIENEMA'].periods = [this.indicators['TIENEMA'].periods[0], this.indicators['TIENEMA'].periods[1], this.indicators['TIENEMA'].periods[2], this.indicators['TIENEMA'].periods[3]];
-                this.buffer.indicators['TIENADX'].periods = [this.indicators['TIENADX'].periods[0], this.indicators['TIENADX'].periods[1], this.indicators['TIENADX'].periods[2], this.indicators['TIENADX'].periods[3]];
+                this.buffer.indicators['TIENEMA'].periods = this.indicators['TIENEMA'].periods.slice(0, 4);
+                this.buffer.indicators['TIENADX'].periods = this.indicators['TIENADX'].periods.slice(0, 4);
             }
 
             if (chart.periods[0].time != this.lasttime) {
@@ -69,10 +64,9 @@ module.exports = class TradingSystem {
                 this.onClose();
             } else {
                 this.buffer.chart.period = this.chart.periods[0];
-                this.buffer.indicators['TIENEMA'].periods = [this.indicators['TIENEMA'].periods[0], this.indicators['TIENEMA'].periods[1], this.indicators['TIENEMA'].periods[2], this.indicators['TIENEMA'].periods[3]];
-                this.buffer.indicators['TIENADX'].periods = [this.indicators['TIENADX'].periods[0], this.indicators['TIENADX'].periods[1], this.indicators['TIENADX'].periods[2], this.indicators['TIENADX'].periods[3]];
+                this.buffer.indicators['TIENEMA'].periods = this.indicators['TIENEMA'].periods.slice(0, 4);
+                this.buffer.indicators['TIENADX'].periods = this.indicators['TIENADX'].periods.slice(0, 4);
                 // this.onUpdate();
-                // console.log(this.buffer.indicators['TIENEMA'].periods);
             }
         });
     }
@@ -129,23 +123,24 @@ module.exports = class TradingSystem {
         const current_adx_condition = cap[0]["ADX"] >= 20;
         const chain_adx_condition = cap[0]["ADX"] > cap[1]["ADX"] && cap[1]["ADX"] > cap[2]["ADX"] && cap[2]["ADX"] > cap[3]["ADX"];
 
-        // Check short
-        const short_ema_condition = close < e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
-        if (short_ema_condition && current_adx_condition && chain_adx_condition) {
-            console.log(`[${moment().format()}] Wait Long: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
-            this.current_action = WAIT_SHORT;
-            return;
-        }
-
         // Check long
         const long_ema_condition = close > e5_2 && e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
         if (long_ema_condition && current_adx_condition && chain_adx_condition) {
-            console.log(`[${moment().format()}] Wait Short: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
+            console.log(`[${moment().format()}] Wait Long: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
             this.current_action = WAIT_LONG;
+            return;
+        }
+
+        // Check short
+        const short_ema_condition = close < e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
+        if (short_ema_condition && current_adx_condition && chain_adx_condition) {
+            console.log(`[${moment().format()}] Wait Short: Current ${close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
+            this.current_action = WAIT_SHORT;
             return;
         }
         return;
     }
+
     waitLong() {
         const close = this.buffer.chart.period.close;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
@@ -331,6 +326,7 @@ module.exports = class TradingSystem {
                 this.current_action = SHORT;
             });
     }
+
     call(promiseFunc, maxRetries = 3) {
         let retries = 0;
 
@@ -352,6 +348,7 @@ module.exports = class TradingSystem {
 
         return retry();
     }
+
     round(number) {
         return Math.round(number / this.qtyStep) * this.qtyStep;
     }
