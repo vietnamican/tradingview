@@ -124,10 +124,11 @@ module.exports = class TradingSystem {
         const current_adx_condition = cap[0]["ADX"] >= 20;
         const chain_adx_condition = cap[0]["ADX"] > cap[1]["ADX"] && cap[1]["ADX"] > cap[2]["ADX"] && cap[2]["ADX"] > cap[3]["ADX"];
 
-        // console.log(`[${moment().format()}] ${cap[0]["ADX"]} ${cap[1]["ADX"]} ${cap[2]["ADX"]} ${cap[3]["ADX"]}`)
+        console.log(`[${moment().format()}] ${cap[0]["ADX"]} ${cap[1]["ADX"]} ${cap[2]["ADX"]} ${cap[3]["ADX"]}`)
+        console.log(`[${moment().format()}] Current ${periods[0].close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`)
 
         // Check long
-        const long_ema_condition = periods[0].close > e5_2 && e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
+        const long_ema_condition = e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
         if (long_ema_condition && current_adx_condition && chain_adx_condition) {
             console.log(`[${moment().format()}] Wait Long: Current ${periods[0].close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
             this.current_action = WAIT_LONG;
@@ -135,7 +136,7 @@ module.exports = class TradingSystem {
         }
 
         // Check short
-        const short_ema_condition = periods[0].close < e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
+        const short_ema_condition = e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
         if (short_ema_condition && current_adx_condition && chain_adx_condition) {
             console.log(`[${moment().format()}] Wait Short: Current ${periods[0].close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
             this.current_action = WAIT_SHORT;
@@ -183,7 +184,7 @@ module.exports = class TradingSystem {
     }
 
     waitShort() {
-        const closes = this.buffer.chart.periods;
+        const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
         const e10 = current_ema['10'];
