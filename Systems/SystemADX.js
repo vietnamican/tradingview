@@ -35,7 +35,7 @@ module.exports = class TradingSystem {
         });
         this.options = this.options || {};
         this.options.slRatio = 0.01;
-        this.options.tpRatios = [0.006, 0.009, 0.012, 0.015, 0.018, 0.02];
+        this.options.tpRatios = [0.006, 0.009, 0.012, 0.015, 0.018, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.085, 0.09, 0.1, 0.15, 0.2];
         this.buffer = {};
         this.buffer.tpIndex = 0;
         this.buffer.chart = {};
@@ -100,16 +100,18 @@ module.exports = class TradingSystem {
         }
     }
 
-    // onUpdate() {
-    //     switch (this.current_action) {
-    //         case LONG:
-    //             this.tpLongOnClose();
-    //             break;
-    //         case SHORT:
-    //             this.tpShortOnClose();
-    //             break;
-    //     }
-    // }
+    onUpdate() {
+        switch (this.current_action) {
+            case LONG:
+                this.slLongOnClose();
+                this.tpLongOnClose();
+                break;
+            case SHORT:
+                this.slShortOnClose();
+                this.tpShortOnClose();
+                break;
+        }
+    }
 
     takePosition() {
         const periods = this.buffer.chart.periods;
@@ -241,12 +243,14 @@ module.exports = class TradingSystem {
             const tp_price = this.position.close * (1 + this.options.tpRatios[index]);
             if (periods[0].close > tp_price) {
                 this.buffer.tpIndex += 1;
+                console.log(`[${moment().format()}] TP Long: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             }
         } else if (index < this.buffer.tpIndex) {
             const sl_price = this.position.close * (1 + this.options.tpRatios[index - 1])
             const tp_price = this.position.close * (1 + this.options.tpRatios[index])
             if (periods[0].close > tp_price) {
                 this.buffer.tpIndex += 1;
+                console.log(`[${moment().format()}] TP Long: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             } else if (periods[0].close <= sl_price) {
                 this.buffer.tpIndex = 0;
                 console.log(`[${moment().format()}] TP Long: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
@@ -284,12 +288,14 @@ module.exports = class TradingSystem {
             const tp_price = this.position.close * (1 - this.options.tpRatios[index]);
             if (periods[0].close < tp_price) {
                 this.buffer.tpIndex += 1;
+                console.log(`[${moment().format()}] TP Short: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             }
         } else if (index < this.buffer.tpIndex) {
             const sl_price = this.position.close * (1 - this.options.tpRatios[index - 1])
             const tp_price = this.position.close * (1 - this.options.tpRatios[index])
             if (periods[0].close < tp_price) {
                 this.buffer.tpIndex += 1;
+                console.log(`[${moment().format()}] TP Short: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             } else if (periods[0].close >= sl_price) {
                 this.buffer.tpIndex = 0;
                 console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
