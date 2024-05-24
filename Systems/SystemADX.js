@@ -79,15 +79,19 @@ module.exports = class TradingSystem {
                 break;
             case WAIT_LONG:
                 this.waitLong();
+                this.cancle();
                 break;
             case SEEK_LONG:
                 this.seekLong();
+                this.cancle();
                 break;
             case WAIT_SHORT:
                 this.waitShort();
+                this.cancle();
                 break;
             case SEEK_SHORT:
                 this.seekShort();
+                this.cancle();
                 break;
             case LONG:
                 this.slLongOnClose();
@@ -138,13 +142,39 @@ module.exports = class TradingSystem {
         }
 
         // Check short
-        const short_ema_condition = e5_2 && e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
+        const short_ema_condition = e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
         if (short_ema_condition && current_adx_condition && chain_adx_condition) {
             console.log(`[${moment().format()}] Wait Short: Current ${periods[0].close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`);
             this.current_action = WAIT_SHORT;
             return;
         }
         return;
+    }
+
+    cancle() {
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+        const e5_2 = current_ema['5_2'];
+        const e10_2 = current_ema['10_2'];
+        const e20_2 = current_ema['20_2'];
+        const e50_2 = current_ema['50_2'];
+        const e200_2 = current_ema['200_2'];
+
+        if (this.current_action === WAIT_LONG) {
+            const long_ema_condition = e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
+            if (!long_ema_condition) {
+                this.current_action = STAND;
+            }
+            return;
+        }
+
+        if (this.current_action === WAIT_SHORT) {
+            const short_ema_condition = e5_2 < e10_2 && e10_2 < e20_2 && e20_2 < e50_2 && e50_2 < e200_2;
+            if (!short_ema_condition) {
+                this.current_action = STAND;
+            }
+            return;
+        }
+
     }
 
     waitLong() {
