@@ -121,11 +121,11 @@ module.exports = class TradingSystem {
         const e200_2 = current_ema['200_2'];
         const cap = this.buffer.indicators['TIENADX'].periods; // current_adx_periods
 
-        const current_adx_condition = cap[0]["ADX"] >= 20;
+        const current_adx_condition = cap[0]["ADX"] >= 22;
         const chain_adx_condition = cap[0]["ADX"] > cap[1]["ADX"] && cap[1]["ADX"] > cap[2]["ADX"] && cap[2]["ADX"] > cap[3]["ADX"];
 
-        console.log(`[${moment().format()}] ${cap[0]["ADX"]} ${cap[1]["ADX"]} ${cap[2]["ADX"]} ${cap[3]["ADX"]}`)
-        console.log(`[${moment().format()}] Current ${periods[0].close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`)
+        // console.log(`[${moment().format()}] ${cap[0]["ADX"]} ${cap[1]["ADX"]} ${cap[2]["ADX"]} ${cap[3]["ADX"]}`)
+        // console.log(`[${moment().format()}] Current ${periods[0].close} e5: ${e5_2}, e10: ${e10_2}, e20: ${e20_2}, e50: ${e50_2}, e200: ${e200_2}`)
 
         // Check long
         const long_ema_condition = e5_2 > e10_2 && e10_2 > e20_2 && e20_2 > e50_2 && e50_2 > e200_2;
