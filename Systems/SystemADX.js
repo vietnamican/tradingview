@@ -275,8 +275,8 @@ module.exports = class TradingSystem {
                 this.buffer.tpIndex += 1;
                 console.log(`[${moment().format()}] TP Long: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             }
-        } else if (index < this.buffer.tpIndex.length) {
-            while(true){
+        } else if (index < this.options.tpRatios.length) {
+            while (true) {
                 const sl_price = this.position.close * (1 + this.options.tpRatios[index - 1])
                 const tp_price = this.position.close * (1 + this.options.tpRatios[index])
                 if (periods[0].close > tp_price) {
@@ -293,7 +293,7 @@ module.exports = class TradingSystem {
                 }
             }
         }
-        if (index === this.buffer.tpIndex.length) {
+        if (index === this.options.tpRatios.length) {
             this.buffer.tpIndex = 0;
             console.log(`[${moment().format()}] TP Long: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             this.liquidlong();
@@ -324,8 +324,8 @@ module.exports = class TradingSystem {
                 this.buffer.tpIndex += 1;
                 console.log(`[${moment().format()}] TP Short: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             }
-        } else if (index < this.buffer.tpIndex.length) {
-            while(true){
+        } else if (index < this.options.tpRatios.length) {
+            while (true) {
                 const sl_price = this.position.close * (1 - this.options.tpRatios[index - 1])
                 const tp_price = this.position.close * (1 - this.options.tpRatios[index])
                 if (periods[0].close < tp_price) {
@@ -342,7 +342,7 @@ module.exports = class TradingSystem {
                 }
             }
         }
-        if (index === this.buffer.tpIndex.length) {
+        if (index === this.options.tpRatios.length) {
             this.buffer.tpIndex = 0;
             console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
             this.liquidshort();
