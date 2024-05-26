@@ -79,7 +79,7 @@ module.exports = class TradingSystem {
 
     resume() {
         if (fs.existsSync(this.resume_path)) {
-            data = JSON.parse(fs.readFileSync(this.resume_path));
+            const data = JSON.parse(fs.readFileSync(this.resume_path));
             this.isFirst = data.isFirst;
             this.lasttime = data.lasttime;
             this.current_action = data.current_action;
@@ -87,6 +87,10 @@ module.exports = class TradingSystem {
             this.qty = data.qty;
             this.price = data.price;
             this.usdt = data.usdt;
+            this.buffer.chart.periods = data.buffer.chart.periods;
+            this.buffer.indicators['TIENEMA'].periods = data.buffer.indicators['TIENEMA'].periods 
+            this.buffer.indicators['TIENADX'].periods = data.buffer.indicators['TIENADX'].periods 
+            console.log(`[${moment().format()}] Resume from ${this.resume_path} done`)
         }
         this.start();
     }
@@ -97,7 +101,7 @@ module.exports = class TradingSystem {
             const filename = path.basename(this.resume_path);
             fs.mkdirSync(dirpath, { recursive: true });
         }
-        data = {}
+        let data = {}
         data.isFirst = this.isFirst;
         data.lasttime = this.lasttime;
         data.current_action = this.current_action;
@@ -105,7 +109,15 @@ module.exports = class TradingSystem {
         data.qty = this.qty;
         data.price = this.price;
         data.usdt = this.usdt;
-        fs.writeFileSync(path, JSON.stringify(data));
+        data.buffer = {};
+        data.buffer.chart = {};
+        data.buffer.chart.periods = this.buffer.chart.periods
+        data.buffer.indicators = {};
+        data.buffer.indicators['TIENEMA'] = {}
+        data.buffer.indicators['TIENEMA'].periods = this.buffer.indicators['TIENEMA'].periods
+        data.buffer.indicators['TIENADX'] = {}
+        data.buffer.indicators['TIENADX'].periods = this.buffer.indicators['TIENADX'].periods 
+        fs.writeFileSync(this.resume_path, JSON.stringify(data));
     }
 
     onClose() {

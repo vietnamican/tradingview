@@ -89,12 +89,12 @@ async function main() {
     await delay(symbols.length * 1 * 1000);
 
     symbols.forEach(symbol_str => {
-        const resume_path = path.join(exchange_str, symbol_str, timeframe_str);
-        const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path=resume_path)
+        const resume_path = path.join(exchange_str, timeframe_str, symbol_str + ".txt");
+        const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path)
         systems.push(system);
     });
 
-    systems.forEach(system => system.start());
+    systems.forEach(system => system.resume());
 }
 
 main()
