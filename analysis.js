@@ -12,6 +12,13 @@ const config = {
     "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
 }
 
+function sortObjectKeys(obj) {
+    const entries = Object.entries(obj);
+    entries.sort((a, b) => a[0].localeCompare(b[0]));
+    const sortedObj = Object.fromEntries(entries);
+    return sortedObj;
+  }
+
 async function loadBybitTrading(config) {
     const exchange = new ccxt.bybit({
         "apiKey": config.bybitapikey,
@@ -92,16 +99,17 @@ async function main() {
     let delay = null;
     await import("delay").then((val) => { delay = val.default });
     results = await statistic();
-    results = reduceByKey(results, "pair");
-    Object.keys(results).map((r) => {
-        let sum = 0;
+    // results = reduceByKey(results, "pair");
+    // Object.keys(results).map((r) => {
+    //     let sum = 0;
 
-        results[r].forEach((v) => {
-            sum += v.pnl;
-        })
+    //     results[r].forEach((v) => {
+    //         sum += v.pnl;
+    //     })
 
-        results[r] = { ...results[r], "sum": sum }
-    })
+    //     results[r] = { ...results[r], "sum": sum }
+    // })
+    // results = sortObjectKeys(results);
     console.log(results);
     // await delay(5000);
     // results.forEach((r) => console.log(r));
