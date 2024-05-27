@@ -367,11 +367,16 @@ module.exports = class TradingSystem {
     }
 
     cancelWhenLong() {
-        const periods = this.buffer.chart.periods;
-        const close_condition = periods[0].close <= periods[1].close && periods[0].close <= periods[2].close && periods[0].close <= periods[3].close;
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+        const e5_2 = current_ema['5_2'];
+        const e10_2 = current_ema['10_2'];
+        const e20_2 = current_ema['20_2'];
+        const e50_2 = current_ema['50_2'];
+        const e200_2 = current_ema['200_2'];
+        close_condition = e5_2 < e50_2;
         const tp_price = this.position.close * (1 + this.options.cancelTpRatio);
         const sl_price = this.position.close * (1 - this.options.cancelSlRatio);
-        if (close_condition || periods[0].close < sl_price) {
+        if (close_condition && periods[0].close < sl_price) {
             this.buffer.tpIndex = 0;
             console.log(`[${moment().format()}] cancel Long: Current ${periods[0].close}`);
             this.liquidlong();
@@ -432,11 +437,16 @@ module.exports = class TradingSystem {
     }
 
     cancelWhenShort() {
-        const periods = this.buffer.chart.periods;
-        const close_condition = periods[0].close >= periods[1].close && periods[0].close >= periods[2].close && periods[0].close >= periods[3].close;
+        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+        const e5_2 = current_ema['5_2'];
+        const e10_2 = current_ema['10_2'];
+        const e20_2 = current_ema['20_2'];
+        const e50_2 = current_ema['50_2'];
+        const e200_2 = current_ema['200_2'];
+        close_condition = e5_2 > e50_2;
         const tp_price = this.position.close * (1 - this.options.cancelTpRatio);
         const sl_price = this.position.close * (1 + this.options.cancelSlRatio);
-        if (close_condition || periods[0].close > sl_price) {
+        if (close_condition && periods[0].close > sl_price) {
             this.buffer.tpIndex = 0;
             console.log(`[${moment().format()}] cancel Short: Current ${periods[0].close}`);
             this.liquidshort();
