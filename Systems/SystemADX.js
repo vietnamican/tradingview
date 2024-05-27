@@ -373,7 +373,7 @@ module.exports = class TradingSystem {
         const e20_2 = current_ema['20_2'];
         const e50_2 = current_ema['50_2'];
         const e200_2 = current_ema['200_2'];
-        close_condition = e5_2 < e50_2;
+        const close_condition = e5_2 < e50_2;
         const tp_price = this.position.close * (1 + this.options.cancelTpRatio);
         const sl_price = this.position.close * (1 - this.options.cancelSlRatio);
         if (close_condition && periods[0].close < sl_price) {
@@ -443,7 +443,7 @@ module.exports = class TradingSystem {
         const e20_2 = current_ema['20_2'];
         const e50_2 = current_ema['50_2'];
         const e200_2 = current_ema['200_2'];
-        close_condition = e5_2 > e50_2;
+        const close_condition = e5_2 > e50_2;
         const tp_price = this.position.close * (1 - this.options.cancelTpRatio);
         const sl_price = this.position.close * (1 + this.options.cancelSlRatio);
         if (close_condition && periods[0].close > sl_price) {
