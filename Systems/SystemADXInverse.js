@@ -363,6 +363,7 @@ module.exports = class TradingSystem {
     }
 
     cancelWhenLong() {
+        const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5_2 = current_ema['5_2'];
         const e10_2 = current_ema['10_2'];
@@ -433,6 +434,7 @@ module.exports = class TradingSystem {
     }
 
     cancelWhenShort() {
+        const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5_2 = current_ema['5_2'];
         const e10_2 = current_ema['10_2'];
