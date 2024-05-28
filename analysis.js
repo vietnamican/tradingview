@@ -39,7 +39,8 @@ function convertToEpochTime(formattedDateTime) {
 
 async function statistic() {
     bybit = await loadBybitTrading(config);
-    const starttimeFormatted = "2024-05-25T21:30:00+07:00"
+    // const starttimeFormatted = "2024-05-25T21:30:00+07:00";
+    const starttimeFormatted = "2024-05-28T21:45:00+07:00";
     const starttime = convertToEpochTime(starttimeFormatted);
     console.log(starttime);
     // const starttime = 1716045120000

@@ -2,7 +2,7 @@ const moment = require("moment");
 const path = require('path');
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const System = require("./Systems/SystemADX");
+const System = require("./Systems/SystemADXInverse");
 const { config, symbols, exchange_str, timeframe_str } = require("./params.js");
 
 async function loadDelay() {
