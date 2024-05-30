@@ -246,6 +246,9 @@ module.exports = class TradingSystem {
     }
 
     waitLong() {
+        if (this.current_action !== WAIT_LONG) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
@@ -263,6 +266,9 @@ module.exports = class TradingSystem {
     }
 
     seekLong() {
+        if (this.current_action !== SEEK_LONG) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
@@ -284,6 +290,9 @@ module.exports = class TradingSystem {
     }
 
     waitShort() {
+        if (this.current_action !== WAIT_SHORT) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
@@ -301,6 +310,9 @@ module.exports = class TradingSystem {
     }
 
     seekShort() {
+        if (this.current_action !== SEEK_SHORT) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5 = current_ema['5'];
@@ -322,6 +334,9 @@ module.exports = class TradingSystem {
     }
 
     slLongOnClose() {
+        if (this.current_action !== LONG) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
 
         const sl_price = this.position.close * (1 - this.options.slRatio);
@@ -374,6 +389,9 @@ module.exports = class TradingSystem {
     // }
 
     tpLongOnClose() {
+        if (this.current_action !== LONG) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
 
         if (!this.buffer.seekingTrailing) {
@@ -402,6 +420,9 @@ module.exports = class TradingSystem {
     }
 
     cancelWhenLong() {
+        if (this.current_action !== LONG) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5_2 = current_ema['5_2'];
@@ -422,6 +443,9 @@ module.exports = class TradingSystem {
     }
 
     slShortOnClose() {
+        if (this.current_action !== SHORT) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
 
         const sl_price = this.position.close * (1 + this.options.slRatio);
@@ -473,6 +497,9 @@ module.exports = class TradingSystem {
     // }
 
     tpShortOnClose() {
+        if (this.current_action !== SHORT) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
 
         if (!this.buffer.seekingTrailing) {
@@ -501,6 +528,9 @@ module.exports = class TradingSystem {
     }
 
     cancelWhenShort() {
+        if (this.current_action !== SHORT) {
+            return;
+        }
         const periods = this.buffer.chart.periods;
         const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
         const e5_2 = current_ema['5_2'];
