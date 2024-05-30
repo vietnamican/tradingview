@@ -405,10 +405,11 @@ module.exports = class TradingSystem {
         } else {
             if (periods[0].close > this.buffer.profitPrice) {
                 this.buffer.profitPrice = periods[0].close;
-                this.buffer.profitPercentage = periods[0].close / this.position.close - 1;
+                this.buffer.profitPercentage = periods[0].close / this.position.close - 1;    
+                console.log(`[${moment().format()}] Change Profit Price: Current ${periods[0].close} TP Price ${this.buffer.profitPrice} Percent ${this.buffer.profitPercentage} Position ${this.position.close}`);
             }
 
-            const trailingPrice = this.buffer.profitPrice * (this.buffer.profitPercentage - this.options.tpTrailingRatio);
+            const trailingPrice = this.position.close * (1 + this.buffer.profitPercentage - this.options.tpTrailingRatio);
             if (periods[0].close < trailingPrice) {
                 console.log(`[${moment().format()}] TP Long: Current ${periods[0].close} Position ${this.position.close}`);
                 this.liquidlong();
@@ -514,9 +515,10 @@ module.exports = class TradingSystem {
             if (periods[0].close < this.buffer.profitPrice) {
                 this.buffer.profitPrice = periods[0].close;
                 this.buffer.profitPercentage = 1 - periods[0].close / this.position.close;
+                console.log(`[${moment().format()}] Change Profit Price: Current ${periods[0].close} TP Price ${this.buffer.profitPrice} Percent ${this.buffer.profitPercentage} Position ${this.position.close}`);
             }
 
-            const trailingPrice = this.buffer.profitPrice * (this.buffer.profitPercentage + this.options.tpTrailingRatio);
+            const trailingPrice = this.position.close * (1 - this.buffer.profitPercentage + this.options.tpTrailingRatio);
             if (periods[0].close > trailingPrice) {
                 console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} Position ${this.position.close}`);
                 this.liquidshort();
