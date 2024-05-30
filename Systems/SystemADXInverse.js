@@ -492,7 +492,7 @@ module.exports = class TradingSystem {
             const trailingPrice = this.buffer.profitPrice * (this.buffer.profitPercentage + this.options.tpTrailingRatio);
             if (periods[0].close > trailingPrice) {
                 console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} Position ${this.position.close}`);
-                this.liquidlong();
+                this.liquidshort();
                 this.current_action = STAND;
                 this.backup();
                 return;
