@@ -39,7 +39,12 @@ const symbols = [
     "BEAMUSDT",
     "RUNEUSDT",
     "LDOUSDT",
-    "FETUSDT"
+    "FETUSDT",
+    "DOTUSDT",
+    "FTMUSDT",
+    "TONUSDT",
+    "GALAUSDT",
+    "ARUSDT"
 ];
 
 exchange_str = "BYBIT";
