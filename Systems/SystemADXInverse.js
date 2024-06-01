@@ -85,6 +85,11 @@ module.exports = class TradingSystem {
     }
 
     resume() {
+        this.restore();
+        this.start();
+    }
+
+    restore() {
         if (fs.existsSync(this.resume_path)) {
             const data = JSON.parse(fs.readFileSync(this.resume_path));
             this.isFirst = data.isFirst;
@@ -100,9 +105,8 @@ module.exports = class TradingSystem {
             this.buffer.seekingTrailing = data.buffer.seekingTrailing;
             this.buffer.profitPrice = data.buffer.profitPrice;
             this.buffer.profitPercentage = data.buffer.profitPercentage;
-            console.log(`[${moment().format()}] Resume from ${this.resume_path} done`)
+            console.log(`[${moment().format()}] Restore from ${this.resume_path} done`)
         }
-        this.start();
     }
 
     backup() {
@@ -168,18 +172,18 @@ module.exports = class TradingSystem {
     }
 
     onUpdate() {
-        // switch (this.current_action) {
-        //     case LONG:
-        //         this.slLongOnClose();
-        //         this.tpLongOnClose();
-        //         this.cancelWhenLong();
-        //         break;
-        //     case SHORT:
-        //         this.slShortOnClose();
-        //         this.tpShortOnClose();
-        //         this.cancelWhenShort();
-        //         break;
-        // }
+        switch (this.current_action) {
+            case LONG:
+                this.slLongOnClose();
+                this.tpLongOnClose();
+                this.cancelWhenLong();
+                break;
+            case SHORT:
+                this.slShortOnClose();
+                this.tpShortOnClose();
+                this.cancelWhenShort();
+                break;
+        }
     }
 
     takePosition() {
@@ -349,45 +353,6 @@ module.exports = class TradingSystem {
         }
     }
 
-    // tpLongOnClose() {
-    //     const periods = this.buffer.chart.periods;
-
-    //     if (this.buffer.tpIndex === 0) {
-    //         const tp_price = this.position.close * (1 + this.options.tpRatios[this.buffer.tpIndex]);
-    //         if (periods[0].close > tp_price) {
-    //             this.buffer.tpIndex += 1;
-    //             console.log(`[${moment().format()}] TP Long: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //         }
-    //     }
-    //     if (this.buffer.tpIndex < this.options.tpRatios.length) {
-    //         while (this.buffer.tpIndex < this.options.tpRatios.length) {
-    //             const sl_price = this.position.close * (1 + this.options.tpRatios[this.buffer.tpIndex - 1])
-    //             const tp_price = this.position.close * (1 + this.options.tpRatios[this.buffer.tpIndex])
-    //             if (periods[0].close > tp_price) {
-    //                 this.buffer.tpIndex += 1;
-    //                 console.log(`[${moment().format()}] TP Long: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //             } else if (periods[0].close <= sl_price) {
-    //                 this.buffer.tpIndex = 0;
-    //                 console.log(`[${moment().format()}] TP Long: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //                 this.liquidlong();
-    //                 this.current_action = STAND;
-    //                 this.backup();
-    //                 return;
-    //             } else {
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     if (this.buffer.tpIndex === this.options.tpRatios.length) {
-    //         this.buffer.tpIndex = 0;
-    //         console.log(`[${moment().format()}] TP Long: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //         this.liquidlong();
-    //         this.current_action = STAND;
-    //         this.backup();
-    //         return;
-    //     }
-    // }
-
     tpLongOnClose() {
         if (this.current_action !== LONG) {
             return;
@@ -405,7 +370,7 @@ module.exports = class TradingSystem {
         } else {
             if (periods[0].close > this.buffer.profitPrice) {
                 this.buffer.profitPrice = periods[0].close;
-                this.buffer.profitPercentage = periods[0].close / this.position.close - 1;    
+                this.buffer.profitPercentage = periods[0].close / this.position.close - 1;
                 console.log(`[${moment().format()}] Change Profit Price: Current ${periods[0].close} TP Price ${this.buffer.profitPrice} Percent ${this.buffer.profitPercentage} Position ${this.position.close}`);
             }
 
@@ -414,6 +379,9 @@ module.exports = class TradingSystem {
                 console.log(`[${moment().format()}] TP Long: Current ${periods[0].close} Position ${this.position.close}`);
                 this.liquidlong();
                 this.current_action = STAND;
+                this.buffer.seekingTrailing = false;
+                this.buffer.profitPrice = -1;
+                this.buffer.profitPercentage = -1;
                 this.backup();
                 return;
             }
@@ -459,44 +427,6 @@ module.exports = class TradingSystem {
         }
     }
 
-    // tpShortOnClose() {
-    //     const periods = this.buffer.chart.periods;
-
-    //     if (this.buffer.tpIndex === 0) {
-    //         const tp_price = this.position.close * (1 - this.options.tpRatios[this.buffer.tpIndex]);
-    //         if (periods[0].close < tp_price) {
-    //             this.buffer.tpIndex += 1;
-    //             console.log(`[${moment().format()}] TP Short: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //         }
-    //     } else if (this.buffer.tpIndex < this.options.tpRatios.length) {
-    //         while (this.buffer.tpIndex < this.options.tpRatios.length) {
-    //             const sl_price = this.position.close * (1 - this.options.tpRatios[this.buffer.tpIndex - 1])
-    //             const tp_price = this.position.close * (1 - this.options.tpRatios[this.buffer.tpIndex])
-    //             if (periods[0].close < tp_price) {
-    //                 this.buffer.tpIndex += 1;
-    //                 console.log(`[${moment().format()}] TP Short: TP Index ${this.buffer.tpIndex} Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //             } else if (periods[0].close >= sl_price) {
-    //                 this.buffer.tpIndex = 0;
-    //                 console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //                 this.liquidshort();
-    //                 this.current_action = STAND;
-    //                 this.backup();
-    //                 return;
-    //             } else {
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     if (this.buffer.tpIndex === this.options.tpRatios.length) {
-    //         this.buffer.tpIndex = 0;
-    //         console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
-    //         this.liquidshort();
-    //         this.current_action = STAND;
-    //         this.backup();
-    //         return;
-    //     }
-    // }
-
     tpShortOnClose() {
         if (this.current_action !== SHORT) {
             return;
@@ -523,6 +453,9 @@ module.exports = class TradingSystem {
                 console.log(`[${moment().format()}] TP Short: Current ${periods[0].close} Position ${this.position.close}`);
                 this.liquidshort();
                 this.current_action = STAND;
+                this.buffer.seekingTrailing = false;
+                this.buffer.profitPrice = -1;
+                this.buffer.profitPercentage = -1;
                 this.backup();
                 return;
             }
