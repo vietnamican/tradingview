@@ -21,14 +21,12 @@ const symbols = [
     "LINKUSDT",
     "NEARUSDT",
     "LTCUSDT",
-    "ARBUSDT",
     "BOMEUSDT",
     "ORDIUSDT",
     "AVAXUSDT",
     "UNIUSDT",
     "ADAUSDT",
     "MATICUSDT",
-    "BCHUSDT",
     "TRXUSDT",
     "WLDUSDT",
     "ONDOUSDT",
@@ -40,11 +38,13 @@ const symbols = [
     "RUNEUSDT",
     "LDOUSDT",
     "FETUSDT",
-    "DOTUSDT",
     "FTMUSDT",
     "TONUSDT",
     "GALAUSDT",
-    "ARUSDT"
+    "ARUSDT",
+    "GRTUSDT",
+    "ICPUSDT",
+    "PEOPLEUSDT"
 ];
 
 exchange_str = "BYBIT";
