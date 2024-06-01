@@ -40,7 +40,7 @@ function convertToEpochTime(formattedDateTime) {
 async function statistic() {
     bybit = await loadBybitTrading(config);
     // const starttimeFormatted = "2024-05-25T21:30:00+07:00";
-    const starttimeFormatted = "2024-05-28T21:45:00+07:00";
+    const starttimeFormatted = "2024-05-30T14:00:00+07:00";
     const starttime = convertToEpochTime(starttimeFormatted);
     console.log(starttime);
     // const starttime = 1716045120000
@@ -100,17 +100,17 @@ async function main() {
     let delay = null;
     await import("delay").then((val) => { delay = val.default });
     results = await statistic();
-    // results = reduceByKey(results, "pair");
-    // Object.keys(results).map((r) => {
-    //     let sum = 0;
+    results = reduceByKey(results, "pair");
+    Object.keys(results).map((r) => {
+        let sum = 0;
 
-    //     results[r].forEach((v) => {
-    //         sum += v.pnl;
-    //     })
+        results[r].forEach((v) => {
+            sum += v.pnl;
+        })
 
-    //     results[r] = { ...results[r], "sum": sum }
-    // })
-    // results = sortObjectKeys(results);
+        results[r] = { ...results[r], "sum": sum }
+    })
+    results = sortObjectKeys(results);
     console.log(results);
     // await delay(5000);
     // results.forEach((r) => console.log(r));
