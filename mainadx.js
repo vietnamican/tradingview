@@ -3,7 +3,7 @@ const path = require('path');
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
 const System = require("./Systems/SystemADXInverse");
-const { config, symbols, exchange_str, timeframe_str } = require("./params.js");
+const { config, symbols, modes, exchange_str, timeframe_str } = require("./params.js");
 
 async function loadDelay() {
     delay = null;
@@ -95,6 +95,7 @@ async function main() {
     });
 
     systems.forEach(system => system.resume());
+    systems.forEach((system, index) => system.setMode(modes[index]));
 }
 
 main()

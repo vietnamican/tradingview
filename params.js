@@ -14,38 +14,59 @@ const symbols = [
     "DOGEUSDT",
     "WIFUSDT",
     "NOTUSDT",
-    "1000BONKUSDT",
     "SHIB1000USDT",
-    "1000FLOKIUSDT",
-    "JASMYUSDT",
     "LINKUSDT",
     "NEARUSDT",
     "LTCUSDT",
-    "BOMEUSDT",
-    "ORDIUSDT",
     "AVAXUSDT",
     "UNIUSDT",
     "ADAUSDT",
     "MATICUSDT",
     "TRXUSDT",
     "WLDUSDT",
-    "ONDOUSDT",
-    "ENAUSDT",
     "RNDRUSDT",
     "OPUSDT",
     "ETCUSDT",
-    "BEAMUSDT",
-    "RUNEUSDT",
-    "LDOUSDT",
     "FETUSDT",
-    "FTMUSDT",
     "TONUSDT",
     "GALAUSDT",
     "ARUSDT",
     "GRTUSDT",
     "ICPUSDT",
-    "PEOPLEUSDT"
+    "PEOPLEUSDT",
+    "BOMEUSDT"
 ];
+
+const modes = [
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "backward",
+    "forward",
+    "forward",
+    "forward",
+    "backward",
+    "forward",
+    "forward",
+    "backward",
+    "backward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "forward",
+    "backward",
+    "forward"
+];
+
 
 exchange_str = "BYBIT";
 
@@ -53,6 +74,7 @@ timeframe_str = '1';
 
 module.exports = {
     symbols,
+    modes,
     config,
     exchange_str,
     timeframe_str

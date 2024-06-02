@@ -40,10 +40,10 @@ module.exports = class TradingSystem {
         this.options = this.options || {};
         this.options.slRatio = 0.006;
         // this.options.tpRatios = [0.01, 0.015, 0.018, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.085, 0.09, 0.1, 0.15, 0.2];
-        this.options.tpRatio = 0.01
-        this.options.tpTrailingRatio = 0.005;
-        this.options.cancelSlRatio = 0.005;
-        this.options.cancelTpRatio = 0.005;
+        this.options.tpRatio = 0.008
+        this.options.tpTrailingRatio = 0.004;
+        this.options.cancelSlRatio = 0.004;
+        this.options.cancelTpRatio = 0.004;
         this.buffer = {};
         this.buffer.tpIndex = 0;
         this.buffer.seekingTrailing = false;
@@ -53,6 +53,7 @@ module.exports = class TradingSystem {
         this.buffer.indicators = {};
         this.buffer.indicators["TIENEMA"] = {};
         this.buffer.indicators["TIENADX"] = {};
+        this.mode = "forward";
     }
 
     start() {
@@ -105,6 +106,7 @@ module.exports = class TradingSystem {
             this.buffer.seekingTrailing = data.buffer.seekingTrailing;
             this.buffer.profitPrice = data.buffer.profitPrice;
             this.buffer.profitPercentage = data.buffer.profitPercentage;
+            this.mode = data.mode;
             console.log(`[${moment().format()}] Restore from ${this.resume_path} done`)
         }
     }
@@ -134,6 +136,7 @@ module.exports = class TradingSystem {
         data.buffer.seekingTrailing = this.buffer.seekingTrailing;
         data.buffer.profitPrice = this.buffer.profitPrice;
         data.buffer.profitPercentage = this.buffer.profitPercentage;
+        data.mode = this.mode;
         fs.writeFileSync(this.resume_path, JSON.stringify(data));
     }
 
@@ -161,12 +164,12 @@ module.exports = class TradingSystem {
             case LONG:
                 this.slLongOnClose();
                 this.tpLongOnClose();
-                this.cancelWhenLong();
+                // this.cancelWhenLong();
                 break;
             case SHORT:
                 this.slShortOnClose();
                 this.tpShortOnClose();
-                this.cancelWhenShort();
+                // this.cancelWhenShort();
                 break;
         }
     }
@@ -176,12 +179,12 @@ module.exports = class TradingSystem {
             case LONG:
                 this.slLongOnClose();
                 this.tpLongOnClose();
-                this.cancelWhenLong();
+                // this.cancelWhenLong();
                 break;
             case SHORT:
                 this.slShortOnClose();
                 this.tpShortOnClose();
-                this.cancelWhenShort();
+                // this.cancelWhenShort();
                 break;
         }
     }
@@ -486,6 +489,38 @@ module.exports = class TradingSystem {
     }
 
     async long() {
+        if (this.mode === "forward") {
+            this.longF();
+        } else if (this.mode === "backward") {
+            this.longB();
+        }
+    }
+
+    async liquidlong() {
+        if (this.mode === "forward") {
+            this.liquidlongF();
+        } else if (this.mode === "backward") {
+            this.liquidlongB();
+        }
+    }
+
+    async short() {
+        if (this.mode === "forward") {
+            this.shortF();
+        } else if (this.mode === "backward") {
+            this.shortB();
+        }
+    }
+
+    async liquidshort() {
+        if (this.mode === "forward") {
+            this.liquidshortF();
+        } else if (this.mode === "backward") {
+            this.liquidshortB();
+        }
+    }
+
+    async longF() {
         const amount = 1000; // 100 USDT
         const price = this.chart.periods[0].close;
         const qty = this.round(amount / price);
@@ -509,7 +544,7 @@ module.exports = class TradingSystem {
             });
     }
 
-    async liquidlong() {
+    async liquidlongF() {
         const qty = this.qty;
         const price = this.price;
         const params = {
@@ -532,7 +567,7 @@ module.exports = class TradingSystem {
             });
     }
 
-    async short() {
+    async shortF() {
         const amount = 1000; // 100 USDT
         const price = this.chart.periods[0].close;
         const qty = this.round(amount / price);
@@ -556,7 +591,7 @@ module.exports = class TradingSystem {
             });
     }
 
-    async liquidshort() {
+    async liquidshortF() {
         const qty = this.qty;
         const price = this.price;
         const params = {
@@ -573,6 +608,100 @@ module.exports = class TradingSystem {
             })
             .catch(error => {
                 console.log(`Error occured when liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = SHORT;
+                this.backup();
+            });
+    }
+
+    async longB() {
+        const amount = 1000; // 100 USDT
+        const price = this.chart.periods[0].close;
+        const qty = this.round(amount / price);
+        const params = {
+            "category": "linear",
+            "side": "Sell",
+            "orderType": "Market"
+        }
+        console.log(`Sell ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = qty;
+                this.price = price;
+                this.backup();
+            })
+            .catch(error => {
+                console.log(`Error occured when sell ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = STAND;
+                this.backup();
+            });
+    }
+
+    async liquidlongB() {
+        const qty = this.qty;
+        const price = this.price;
+        const params = {
+            "category": "linear",
+            "side": "Buy",
+            "orderType": "Market"
+        }
+        console.log(`Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = 0;
+                this.price = 0;
+                this.backup();
+            })
+            .catch(error => {
+                console.log(`Error occured when liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = LONG;
+                this.backup();
+            });
+    }
+
+    async shortB() {
+        const amount = 1000; // 100 USDT
+        const price = this.chart.periods[0].close;
+        const qty = this.round(amount / price);
+        const params = {
+            "category": "linear",
+            "side": "Buy",
+            "orderType": "Market"
+        }
+        console.log(`Buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = qty;
+                this.price = price;
+                this.backup();
+            })
+            .catch(error => {
+                console.log(`Error occured when buy ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = STAND;
+                this.backup();
+            });
+    }
+
+    async liquidshortB() {
+        const qty = this.qty;
+        const price = this.price;
+        const params = {
+            "category": "linear",
+            "side": "Sell",
+            "orderType": "Market"
+        }
+        console.log(`Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty = 0;
+                this.price = 0;
+                this.backup();
+            })
+            .catch(error => {
+                console.log(`Error occured when liquid buy ${qty} ${this.symbol_str} with price ${price}`);
                 console.error('Error:', error);
                 this.current_action = SHORT;
                 this.backup();
@@ -607,5 +736,9 @@ module.exports = class TradingSystem {
 
     recordPosition() {
         this.position = this.buffer.chart.periods[0];
+    }
+
+    setMode(mode) {
+        this.mode = mode;
     }
 }
