@@ -27,7 +27,6 @@ const symbols = [
     "RNDRUSDT",
     "OPUSDT",
     "ETCUSDT",
-    "FETUSDT",
     "TONUSDT",
     "GALAUSDT",
     "ARUSDT",

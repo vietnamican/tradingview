@@ -82,11 +82,12 @@ async function main() {
     });
     const bybit = await loadBybitTrading(config);
 
-    symbols.forEach(async symbol_str => {
-        await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
+    const promises = symbols.map(async symbol_str => {
+        return loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
     });
+    const results = await Promise.all(promises);
     // await delay(5000);
-    await delay(symbols.length * 1 * 1000);
+    // await delay(symbols.length * 1 * 1000);
 
     symbols.forEach(symbol_str => {
         const resume_path = path.join(exchange_str, timeframe_str, symbol_str + ".txt");
