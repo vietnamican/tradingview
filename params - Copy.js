@@ -48,6 +48,11 @@ const modes = [
     "forward",
     "forward",
     "forward",
+    "backward",
+    "forward",
+    "forward",
+    "backward",
+    "backward",
     "forward",
     "forward",
     "forward",
@@ -56,12 +61,7 @@ const modes = [
     "forward",
     "forward",
     "forward",
-    "forward",
-    "forward",
-    "forward",
-    "forward",
-    "forward",
-    "forward",
+    "backward",
     "forward"
 ];
 
