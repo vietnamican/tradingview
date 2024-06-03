@@ -530,8 +530,8 @@ module.exports = class SystemADX {
         } else {
             const trailingPrice = this.position.close * (1 - this.options.noProfitStopRatio);
             if (periods[0].close > trailingPrice) {
-                console.log(`[${moment().format()}] Long No Profit: Current ${periods[0].close} Position ${this.position.close}`);
-                this.liquidlong();
+                console.log(`[${moment().format()}] Short No Profit: Current ${periods[0].close} Position ${this.position.close}`);
+                this.liquidshort();
                 this.afterLiquidShort();
                 this.backup();
             }
