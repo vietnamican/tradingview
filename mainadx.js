@@ -2,7 +2,8 @@ const moment = require("moment");
 const path = require('path');
 const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const System = require("./Systems/SystemADXInverse");
+const SystemADXInverse = require("./Systems/SystemADXInverse");
+const SystemADX = require("./Systems/SystemADX");
 const { config, symbols, modes, exchange_str, timeframe_str } = require("./params.js");
 
 async function loadDelay() {
@@ -89,14 +90,18 @@ async function main() {
     // await delay(5000);
     // await delay(symbols.length * 1 * 1000);
 
-    symbols.forEach(symbol_str => {
+    symbols.forEach((symbol_str, index) => {
         const resume_path = path.join(exchange_str, timeframe_str, symbol_str + ".txt");
-        const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path)
-        systems.push(system);
+        if (modes[index] === 'normal') {
+            const system = new SystemADX(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path)
+            systems.push(system);
+        } else if (modes[index] === 'inverse') {
+            const system = new SystemADXInverse(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path)
+            systems.push(system);
+        }
     });
 
     systems.forEach(system => system.resume());
-    systems.forEach((system, index) => system.setMode(modes[index]));
 }
 
 main()
