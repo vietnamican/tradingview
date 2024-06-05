@@ -39,8 +39,8 @@ const symbols = [
 const modes = [
     "inverse",
     "inverse",
-    "normal",
     "inverse",
+    "normal",
     "inverse",
     "normal",
     "inverse",
