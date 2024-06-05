@@ -38,13 +38,13 @@ module.exports = class SystemADX {
         this.usdt = 50000;
 
         this.options = this.options || {};
-        this.options.slRatio = 0.006;
+        this.options.slRatio = 0.01;
         // this.options.tpRatios = [0.01, 0.015, 0.018, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.085, 0.09, 0.1, 0.15, 0.2];
-        this.options.tpRatio = 0.01
-        this.options.tpTrailingRatio = 0.005;
+        this.options.tpRatio = 0.007;
+        this.options.tpTrailingRatio = 0.001;
         this.options.cancelSlRatio = 0.004;
         this.options.cancelTpRatio = 0.004;
-        this.options.noProfitTriggerRatio = 0.005;
+        this.options.noProfitTriggerRatio = 0.2;
         this.options.noProfitStopRatio = 0.0015;
         this.buffer = {};
         this.buffer.tpIndex = 0;
