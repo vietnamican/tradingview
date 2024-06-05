@@ -37,21 +37,15 @@ const symbols = [
 ];
 
 const modes = [
-    "inverse",
-    "inverse",
-    "inverse",
-    "normal",
-    "inverse",
     "normal",
     "inverse",
     "inverse",
     "normal",
     "inverse",
+    "normal",
     "inverse",
     "inverse",
-    "inverse",
-    "inverse",
-    "inverse",
+    "normal",
     "inverse",
     "inverse",
     "inverse",
@@ -60,7 +54,13 @@ const modes = [
     "inverse",
     "inverse",
     "inverse",
+    "normal",
     "inverse",
+    "normal",
+    "inverse",
+    "normal",
+    "inverse",
+    "normal",
     "inverse",
     "inverse"
 ];
