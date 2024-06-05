@@ -7,63 +7,34 @@ const config = {
     "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
 }
 
-const symbols = [
-    "SOLUSDT",
-    "1000PEPEUSDT",
-    "XRPUSDT",
-    "DOGEUSDT",
-    "WIFUSDT",
-    "NOTUSDT",
-    "SHIB1000USDT",
-    "LINKUSDT",
-    "NEARUSDT",
-    "LTCUSDT",
-    "AVAXUSDT",
-    "UNIUSDT",
-    "ADAUSDT",
-    "MATICUSDT",
-    "TRXUSDT",
-    "WLDUSDT",
-    "RNDRUSDT",
-    "OPUSDT",
-    "ETCUSDT",
-    "TONUSDT",
-    "GALAUSDT",
-    "ARUSDT",
-    "GRTUSDT",
-    "ICPUSDT",
-    "PEOPLEUSDT",
-    "BOMEUSDT"
-];
-
-const modes = [
-    "normal",
-    "inverse",
-    "inverse",
-    "normal",
-    "inverse",
-    "normal",
-    "inverse",
-    "inverse",
-    "normal",
-    "inverse",
-    "inverse",
-    "inverse",
-    "inverse",
-    "normal",
-    "inverse",
-    "inverse",
-    "inverse",
-    "normal",
-    "inverse",
-    "normal",
-    "inverse",
-    "normal",
-    "inverse",
-    "normal",
-    "inverse",
-    "inverse"
-];
+const pairs = [
+    { symbol: 'SOLUSDT', mode: 'inverse' },
+    { symbol: '1000PEPEUSDT', mode: 'inverse' },
+    { symbol: 'XRPUSDT', mode: 'inverse' },
+    { symbol: 'DOGEUSDT', mode: 'inverse' },
+    { symbol: 'WIFUSDT', mode: 'inverse' },
+    { symbol: 'NOTUSDT', mode: 'inverse' },
+    { symbol: 'SHIB1000USDT', mode: 'inverse' },
+    { symbol: 'LINKUSDT', mode: 'inverse' },
+    { symbol: 'NEARUSDT', mode: 'inverse' },
+    { symbol: 'LTCUSDT', mode: 'inverse' },
+    { symbol: 'AVAXUSDT', mode: 'inverse' },
+    { symbol: 'UNIUSDT', mode: 'inverse' },
+    { symbol: 'ADAUSDT', mode: 'inverse' },
+    { symbol: 'MATICUSDT', mode: 'inverse' },
+    { symbol: 'TRXUSDT', mode: 'inverse' },
+    { symbol: 'WLDUSDT', mode: 'inverse' },
+    { symbol: 'RNDRUSDT', mode: 'inverse' },
+    { symbol: 'OPUSDT', mode: 'inverse' },
+    { symbol: 'ETCUSDT', mode: 'inverse' },
+    { symbol: 'TONUSDT', mode: 'inverse' },
+    { symbol: 'GALAUSDT', mode: 'inverse' },
+    { symbol: 'ARUSDT', mode: 'inverse' },
+    { symbol: 'GRTUSDT', mode: 'inverse' },
+    { symbol: 'ICPUSDT', mode: 'inverse' },
+    { symbol: 'PEOPLEUSDT', mode: 'inverse' },
+    { symbol: 'BOMEUSDT', mode: 'inverse' }
+]
 
 
 exchange_str = "BYBIT";
@@ -71,8 +42,7 @@ exchange_str = "BYBIT";
 timeframe_str = '1';
 
 module.exports = {
-    symbols,
-    modes,
+    pairs,
     config,
     exchange_str,
     timeframe_str

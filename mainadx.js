@@ -4,7 +4,7 @@ const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
 const SystemADXInverse = require("./Systems/SystemADXInverse");
 const SystemADX = require("./Systems/SystemADX");
-const { config, symbols, modes, exchange_str, timeframe_str } = require("./params.js");
+const { config, pairs, exchange_str, timeframe_str } = require("./params.js");
 
 async function loadDelay() {
     delay = null;
@@ -83,19 +83,21 @@ async function main() {
     });
     const bybit = await loadBybitTrading(config);
 
-    const promises = symbols.map(async symbol_str => {
+    const promises = pairs.map(async pair => {
+        const symbol_str = pair['symbol'];
         return loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
     });
     const results = await Promise.all(promises);
     // await delay(5000);
     // await delay(symbols.length * 1 * 1000);
 
-    symbols.forEach((symbol_str, index) => {
+    pairs.forEach(pair => {
+        const symbol_str = pair['symbol']
         const resume_path = path.join(exchange_str, timeframe_str, symbol_str + ".txt");
-        if (modes[index] === 'normal') {
+        if (pair['mode'] === 'normal') {
             const system = new SystemADX(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path)
             systems.push(system);
-        } else if (modes[index] === 'inverse') {
+        } else if (pair['mode'] === 'inverse') {
             const system = new SystemADXInverse(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path)
             systems.push(system);
         }
