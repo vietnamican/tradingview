@@ -42,7 +42,8 @@ async function statistic() {
     // const starttimeFormatted = "2024-05-25T21:30:00+07:00";
     // const starttimeFormatted = "2024-06-02T10:24:00+07:00";
     // const starttimeFormatted = "2024-06-05T11:15+07:00";
-    const starttimeFormatted = "2024-06-05T21:30+07:00";
+    // const starttimeFormatted = "2024-06-05T21:30+07:00";
+    const starttimeFormatted = "2024-06-10T11:44+07:00";
     const starttime = convertToEpochTime(starttimeFormatted);
     console.log(starttime);
     // const starttime = 1716045120000
