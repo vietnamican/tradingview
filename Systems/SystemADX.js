@@ -612,7 +612,7 @@ module.exports = class SystemADX {
     }
 
     async liquidhaftlong() {
-        const qty = this.round(this.qty);
+        const qty = this.round(this.qty / 2);
         const price = this.price;
         const params = {
             "category": "linear",
@@ -682,7 +682,7 @@ module.exports = class SystemADX {
     }
 
     async liquidhaftshort() {
-        const qty = this.round(this.qty);
+        const qty = this.round(this.qty / 2);
         const price = this.price;
         const params = {
             "category": "linear",
