@@ -25,6 +25,7 @@ module.exports = class SystemADX {
         this.init();
     }
 
+    // new variable: this.buffer.breakEven, this.options.breakEvenRatio, this.liquidhaftlong
     init() {
         axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
             this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
@@ -46,12 +47,14 @@ module.exports = class SystemADX {
         this.options.cancelTpRatio = 0.004;
         this.options.noProfitTriggerRatio = 0.2;
         this.options.noProfitStopRatio = 0.0015;
+        this.options.breakEvenRatio = 0.003;
         this.buffer = {};
         this.buffer.tpIndex = 0;
         this.buffer.seekingTrailing = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
         this.buffer.noProfitTrailing = false;
+        this.buffer.breakEven = false;
         this.buffer.chart = {};
         this.buffer.indicators = {};
         this.buffer.indicators["TIENEMA"] = {};
@@ -109,6 +112,7 @@ module.exports = class SystemADX {
             this.buffer.profitPrice = data.buffer.profitPrice;
             this.buffer.profitPercentage = data.buffer.profitPercentage;
             this.buffer.noProfitTrailing = data.buffer.noProfitTrailing;
+            this.buffer.breakEven = data.buffer.breakEven;
             console.log(`[${moment().format()}] Restore from ${this.resume_path} done`)
         }
     }
@@ -139,6 +143,7 @@ module.exports = class SystemADX {
         data.buffer.profitPrice = this.buffer.profitPrice;
         data.buffer.profitPercentage = this.buffer.profitPercentage;
         data.buffer.noProfitTrailing = this.buffer.noProfitTrailing;
+        data.buffer.breakEven = this.buffer.breakEven;
         fs.writeFileSync(this.resume_path, JSON.stringify(data));
     }
 
@@ -368,6 +373,17 @@ module.exports = class SystemADX {
         }
         const periods = this.buffer.chart.periods;
 
+        // new variable: this.buffer.breakEven, this.options.breakEvenRatio, this.liquidhaftlong
+        if (!this.buffer.breakEven) {
+            const tp_price = this.position.close * (1 + this.options.breakEvenRatio);
+            if (periods[0].close > tp_price) {
+                this.buffer.breakEven = true;
+                this.liquidhaftlong();
+                this.backup();
+                console.log(`[${moment().format()}] TP Haft Long: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
+            }
+        }
+
         if (!this.buffer.seekingTrailing) {
             const tp_price = this.position.close * (1 + this.options.tpRatio);
             if (periods[0].close > tp_price) {
@@ -463,6 +479,16 @@ module.exports = class SystemADX {
             return;
         }
         const periods = this.buffer.chart.periods;
+
+        if (!this.buffer.breakEven) {
+            const tp_price = this.position.close * (1 - this.options.breakEvenRatio);
+            if (periods[0].close < tp_price) {
+                this.buffer.breakEven = true;
+                this.liquidhaftshort();
+                this.backup();
+                console.log(`[${moment().format()}] TP Haft Short: Current ${periods[0].close} TP Price ${tp_price} Position ${this.position.close}`);
+            }
+        }
 
         if (!this.buffer.seekingTrailing) {
             const tp_price = this.position.close * (1 - this.options.tpRatio);
@@ -585,6 +611,29 @@ module.exports = class SystemADX {
             });
     }
 
+    async liquidhaftlong() {
+        const qty = this.round(this.qty);
+        const price = this.price;
+        const params = {
+            "category": "linear",
+            "side": "Sell",
+            "orderType": "Market"
+        }
+        console.log(`Liquid buy ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty -= qty;
+                this.price = 0;
+                this.backup();
+            })
+            .catch(error => {
+                console.log(`Error occured when liquid byt ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = LONG;
+                this.backup();
+            });
+    }
+
     async short() {
         const amount = 1000; // 100 USDT
         const price = this.chart.periods[0].close;
@@ -621,6 +670,29 @@ module.exports = class SystemADX {
         this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
             .then(result => {
                 this.qty = 0;
+                this.price = 0;
+                this.backup();
+            })
+            .catch(error => {
+                console.log(`Error occured when liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+                console.error('Error:', error);
+                this.current_action = SHORT;
+                this.backup();
+            });
+    }
+
+    async liquidhaftshort() {
+        const qty = this.round(this.qty);
+        const price = this.price;
+        const params = {
+            "category": "linear",
+            "side": "Buy",
+            "orderType": "Market"
+        }
+        console.log(`Liquid sell ${qty} ${this.symbol_str} with price ${price}`);
+        this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
+            .then(result => {
+                this.qty -= qty;
                 this.price = 0;
                 this.backup();
             })
@@ -677,4 +749,10 @@ module.exports = class SystemADX {
     recordPosition() {
         this.position = this.buffer.chart.periods[0];
     }
+}
+
+function divideAndRound(num) {
+    const quotient = num / 2;
+    const roundedQuotient = Math.round(quotient * Math.pow(10, String(Math.abs(num)).length - 1)) / Math.pow(10, String(Math.abs(num)).length - 1);
+    return roundedQuotient;
 }

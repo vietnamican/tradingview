@@ -44,14 +44,14 @@ async function statistic() {
     // const starttimeFormatted = "2024-06-05T11:15+07:00";
     // const starttimeFormatted = "2024-06-05T21:30+07:00";
     // const starttimeFormatted = "2024-06-10T11:44+07:00";
-    const starttimeFormatted = "2024-06-13T14:17+07:00";
+    const starttimeFormatted = "2024-06-13T14:30+07:00";
+    const endtimeFormatted = moment().format();
     const starttime = convertToEpochTime(starttimeFormatted);
-    console.log(starttime);
-    // const starttime = 1716045120000
-    const endtime = Date.now();
+    const endtime = convertToEpochTime(endtimeFormatted);
+    console.log(starttimeFormatted);
+    console.log(endtimeFormatted);
     step = 60 * 60 * 1000;
     const results = []
-    // console.log(range(endtime, starttime, -step));
     const ranges = range(endtime, starttime, -step);
     for (let i = 0; i < ranges.length; i++) {
         const pieceoftimeend = ranges[i];
