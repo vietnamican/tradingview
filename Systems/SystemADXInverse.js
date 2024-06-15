@@ -44,8 +44,8 @@ module.exports = class SystemADXInverse {
         this.options.tpTrailingRatio = 0.001;
         this.options.cancelSlRatio = 0.004;
         this.options.cancelTpRatio = 0.004;
-        this.options.noProfitTriggerRatio = 0.2;
-        this.options.noProfitStopRatio = 0.0015;
+        this.options.noProfitTriggerRatio = 0.005;
+        this.options.noProfitStopRatio = 0.002;
         this.options.breakEvenRatio = 0.003;
         this.buffer = {};
         this.buffer.tpIndex = 0;
@@ -621,7 +621,7 @@ module.exports = class SystemADXInverse {
         this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
             .then(result => {
                 this.qty -= qty;
-                this.price = 0;
+                // this.price = 0;
                 this.backup();
             })
             .catch(error => {
@@ -691,7 +691,7 @@ module.exports = class SystemADXInverse {
         this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
             .then(result => {
                 this.qty -= qty;
-                this.price = 0;
+                // this.price = 0;
                 this.backup();
             })
             .catch(error => {
@@ -728,6 +728,7 @@ module.exports = class SystemADXInverse {
         this.current_action = STAND;
         this.buffer.noProfitTrailing = false;
         this.buffer.seekingTrailing = false;
+        this.buffer.breakEven = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
     }
@@ -736,6 +737,7 @@ module.exports = class SystemADXInverse {
         this.current_action = STAND;
         this.buffer.noProfitTrailing = false;
         this.buffer.seekingTrailing = false;
+        this.buffer.breakEven = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
     }

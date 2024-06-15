@@ -25,7 +25,6 @@ module.exports = class SystemADX {
         this.init();
     }
 
-    // new variable: this.buffer.breakEven, this.options.breakEvenRatio, this.liquidhaftlong
     init() {
         axios.get(`https://api-testnet.bybit.com/v5/market/instruments-info?category=linear&symbol=${this.symbol_str}`).then(res => {
             this.qtyStep = res.data.result.list[0].lotSizeFilter.qtyStep;
@@ -45,8 +44,8 @@ module.exports = class SystemADX {
         this.options.tpTrailingRatio = 0.001;
         this.options.cancelSlRatio = 0.004;
         this.options.cancelTpRatio = 0.004;
-        this.options.noProfitTriggerRatio = 0.2;
-        this.options.noProfitStopRatio = 0.0015;
+        this.options.noProfitTriggerRatio = 0.005;
+        this.options.noProfitStopRatio = 0.002;
         this.options.breakEvenRatio = 0.003;
         this.buffer = {};
         this.buffer.tpIndex = 0;
@@ -373,7 +372,6 @@ module.exports = class SystemADX {
         }
         const periods = this.buffer.chart.periods;
 
-        // new variable: this.buffer.breakEven, this.options.breakEvenRatio, this.liquidhaftlong
         if (!this.buffer.breakEven) {
             const tp_price = this.position.close * (1 + this.options.breakEvenRatio);
             if (periods[0].close > tp_price) {
@@ -623,7 +621,7 @@ module.exports = class SystemADX {
         this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
             .then(result => {
                 this.qty -= qty;
-                this.price = 0;
+                // this.price = 0;
                 this.backup();
             })
             .catch(error => {
@@ -693,7 +691,7 @@ module.exports = class SystemADX {
         this.call(() => { return this.exchange.createMarketBuyOrderWithCost(this.symbol_str, qty, params) })
             .then(result => {
                 this.qty -= qty;
-                this.price = 0;
+                // this.price = 0;
                 this.backup();
             })
             .catch(error => {
@@ -730,6 +728,7 @@ module.exports = class SystemADX {
         this.current_action = STAND;
         this.buffer.noProfitTrailing = false;
         this.buffer.seekingTrailing = false;
+        this.buffer.breakEven = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
     }
@@ -738,6 +737,7 @@ module.exports = class SystemADX {
         this.current_action = STAND;
         this.buffer.noProfitTrailing = false;
         this.buffer.seekingTrailing = false;
+        this.buffer.breakEven = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
     }
@@ -749,10 +749,4 @@ module.exports = class SystemADX {
     recordPosition() {
         this.position = this.buffer.chart.periods[0];
     }
-}
-
-function divideAndRound(num) {
-    const quotient = num / 2;
-    const roundedQuotient = Math.round(quotient * Math.pow(10, String(Math.abs(num)).length - 1)) / Math.pow(10, String(Math.abs(num)).length - 1);
-    return roundedQuotient;
 }
