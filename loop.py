@@ -26,7 +26,7 @@ def monitor_file(file_path):
     while True:
         has_changed = check_file_changes(file_path)
         print(f"File đã thay đổi: {has_changed}")
-        time.sleep(1)  # Đợi 60 giây trước khi kiểm tra lại
+        time.sleep(150)  # Đợi 60 giây trước khi kiểm tra lại
         if not has_changed:
             take_loop()
 

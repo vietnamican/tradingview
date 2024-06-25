@@ -27,7 +27,7 @@ function monitorFile(filePath) {
   setInterval(() => {
     const hasChanged = checkFileChanges(filePath);
     console.log(`File đã thay đổi: ${hasChanged}`);
-  }, 1000); // Kiểm tra mỗi 60000ms (1 phút)
+  }, 150000); // Kiểm tra mỗi 150000ms (2.5 phút)
 }
 
 const filePath = 'nohup.out';
