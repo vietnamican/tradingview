@@ -38,15 +38,15 @@ module.exports = class SystemADX {
         this.usdt = 50000;
 
         this.options = this.options || {};
-        this.options.slRatio = 0.006;
+        this.options.slRatio = 0.03;
         // this.options.tpRatios = [0.01, 0.015, 0.018, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.085, 0.09, 0.1, 0.15, 0.2];
-        this.options.tpRatio = 0.01;
-        this.options.tpTrailingRatio = 0.005;
-        this.options.cancelSlRatio = 0.004;
-        this.options.cancelTpRatio = 0.004;
-        this.options.noProfitTriggerRatio = 0.005;
-        this.options.noProfitStopRatio = 0.002;
-        this.options.breakEvenRatio = 0.003;
+        this.options.tpRatio = 0.03;
+        this.options.tpTrailingRatio = 0.01;
+        // this.options.cancelSlRatio = 0.004;
+        // this.options.cancelTpRatio = 0.004;
+        this.options.noProfitTriggerRatio = 0.015;
+        this.options.noProfitStopRatio = 0.0075;
+        this.options.breakEvenRatio = 0.01;
         this.buffer = {};
         this.buffer.tpIndex = 0;
         this.buffer.seekingTrailing = false;
@@ -171,13 +171,13 @@ module.exports = class SystemADX {
                 this.slLongOnClose();
                 this.tpLongOnClose();
                 this.noProfitLongOnClose();
-                this.cancelWhenLong();
+                // this.cancelWhenLong();
                 break;
             case SHORT:
                 this.slShortOnClose();
                 this.tpShortOnClose();
                 this.noProfitShortOnClose();
-                this.cancelWhenShort();
+                // this.cancelWhenShort();
                 break;
         }
     }
@@ -188,13 +188,13 @@ module.exports = class SystemADX {
                 this.slLongOnClose();
                 this.tpLongOnClose();
                 this.noProfitLongOnClose();
-                this.cancelWhenLong();
+                // this.cancelWhenLong();
                 break;
             case SHORT:
                 this.slShortOnClose();
                 this.tpShortOnClose();
                 this.noProfitShortOnClose();
-                this.cancelWhenShort();
+                // this.cancelWhenShort();
                 break;
         }
     }
@@ -408,28 +408,28 @@ module.exports = class SystemADX {
         }
     }
 
-    cancelWhenLong() {
-        if (this.current_action !== LONG) {
-            return;
-        }
-        const periods = this.buffer.chart.periods;
-        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
-        const e5_2 = current_ema['5_2'];
-        const e10_2 = current_ema['10_2'];
-        const e20_2 = current_ema['20_2'];
-        const e50_2 = current_ema['50_2'];
-        const e200_2 = current_ema['200_2'];
-        const close_condition = e5_2 < e50_2;
-        const tp_price = this.position.close * (1 + this.options.cancelTpRatio);
-        const sl_price = this.position.close * (1 - this.options.cancelSlRatio);
-        if (close_condition && periods[0].close < sl_price) {
-            this.buffer.tpIndex = 0;
-            console.log(`[${moment().format()}] cancel Long: Current ${periods[0].close}`);
-            this.liquidlong();
-            this.afterLiquidLong();
-            this.backup();
-        }
-    }
+    // cancelWhenLong() {
+    //     if (this.current_action !== LONG) {
+    //         return;
+    //     }
+    //     const periods = this.buffer.chart.periods;
+    //     const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+    //     const e5_2 = current_ema['5_2'];
+    //     const e10_2 = current_ema['10_2'];
+    //     const e20_2 = current_ema['20_2'];
+    //     const e50_2 = current_ema['50_2'];
+    //     const e200_2 = current_ema['200_2'];
+    //     const close_condition = e5_2 < e50_2;
+    //     const tp_price = this.position.close * (1 + this.options.cancelTpRatio);
+    //     const sl_price = this.position.close * (1 - this.options.cancelSlRatio);
+    //     if (close_condition && periods[0].close < sl_price) {
+    //         this.buffer.tpIndex = 0;
+    //         console.log(`[${moment().format()}] cancel Long: Current ${periods[0].close}`);
+    //         this.liquidlong();
+    //         this.afterLiquidLong();
+    //         this.backup();
+    //     }
+    // }
 
     noProfitLongOnClose() {
         if (this.current_action !== LONG) {
@@ -514,28 +514,28 @@ module.exports = class SystemADX {
         }
     }
 
-    cancelWhenShort() {
-        if (this.current_action !== SHORT) {
-            return;
-        }
-        const periods = this.buffer.chart.periods;
-        const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
-        const e5_2 = current_ema['5_2'];
-        const e10_2 = current_ema['10_2'];
-        const e20_2 = current_ema['20_2'];
-        const e50_2 = current_ema['50_2'];
-        const e200_2 = current_ema['200_2'];
-        const close_condition = e5_2 > e50_2;
-        const tp_price = this.position.close * (1 - this.options.cancelTpRatio);
-        const sl_price = this.position.close * (1 + this.options.cancelSlRatio);
-        if (close_condition && periods[0].close > sl_price) {
-            this.buffer.tpIndex = 0;
-            console.log(`[${moment().format()}] cancel Short: Current ${periods[0].close}`);
-            this.liquidshort();
-            this.afterLiquidShort();
-            this.backup();
-        }
-    }
+    // cancelWhenShort() {
+    //     if (this.current_action !== SHORT) {
+    //         return;
+    //     }
+    //     const periods = this.buffer.chart.periods;
+    //     const current_ema = this.buffer.indicators['TIENEMA'].periods[0];
+    //     const e5_2 = current_ema['5_2'];
+    //     const e10_2 = current_ema['10_2'];
+    //     const e20_2 = current_ema['20_2'];
+    //     const e50_2 = current_ema['50_2'];
+    //     const e200_2 = current_ema['200_2'];
+    //     const close_condition = e5_2 > e50_2;
+    //     const tp_price = this.position.close * (1 - this.options.cancelTpRatio);
+    //     const sl_price = this.position.close * (1 + this.options.cancelSlRatio);
+    //     if (close_condition && periods[0].close > sl_price) {
+    //         this.buffer.tpIndex = 0;
+    //         console.log(`[${moment().format()}] cancel Short: Current ${periods[0].close}`);
+    //         this.liquidshort();
+    //         this.afterLiquidShort();
+    //         this.backup();
+    //     }
+    // }
 
     noProfitShortOnClose() {
         if (this.current_action !== SHORT) {
