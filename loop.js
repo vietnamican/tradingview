@@ -12,7 +12,7 @@ function checkFileChanges(filePath) {
   console.log(`Số dòng trong file ${currentLineCount}`);
   if (previousLineCount === null) {
     previousLineCount = currentLineCount;
-    return false;
+    return true;
   }
 
   if (currentLineCount !== previousLineCount) {

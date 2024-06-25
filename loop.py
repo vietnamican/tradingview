@@ -14,7 +14,7 @@ def check_file_changes(file_path):
 
     if previous_line_count is None:
         previous_line_count = current_line_count
-        return False
+        return True
 
     if current_line_count != previous_line_count:
         previous_line_count = current_line_count
