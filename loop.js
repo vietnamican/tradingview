@@ -30,5 +30,5 @@ function monitorFile(filePath) {
   }, 150000); // Kiểm tra mỗi 150000ms (2.5 phút)
 }
 
-const filePath = 'nohup.out';
+const filePath = 'log.txt';
 monitorFile(filePath);

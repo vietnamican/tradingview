@@ -34,7 +34,7 @@ def take_loop():
     os.system("kill $(pgrep node)")
 
 if __name__ == "__main__":
-    file_path = 'nohup.out'
+    file_path = 'log.txt'
     
     if not os.path.exists(file_path):
         print(f"File không tồn tại: {file_path}")
