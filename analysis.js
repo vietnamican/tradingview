@@ -46,7 +46,8 @@ async function statistic() {
     // const starttimeFormatted = "2024-06-10T11:44+07:00";
     // const starttimeFormatted = "2024-06-16T16:40+07:00";
     // const starttimeFormatted = "2024-06-25T15:00+07:00";
-    const starttimeFormatted = "2024-07-03T12:00+07:00";
+    // const starttimeFormatted = "2024-07-03T12:00+07:00";
+    const starttimeFormatted = "2024-07-16T15:00+07:00";
     const endtimeFormatted = moment().format();
     const starttime = convertToEpochTime(starttimeFormatted);
     const endtime = convertToEpochTime(endtimeFormatted);
