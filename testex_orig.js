@@ -1,6 +1,6 @@
-const TradingView = require('../main');
+const TradingView = require('@mathieuc/tradingview');
 const ccxt = require("ccxt");
-const System = require("./System");
+const System = require("./Systems/SystemADX.js");
 
 // const delay = require("delay");
 
@@ -101,41 +101,41 @@ async function main() {
     // console.log(bybit);
 
 
-    exchange_str = "BYBIT"
-    timeframe_str = '1'
-    symbols.forEach(async symbol_str => {
-        await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
-    });
-    await delay(symbols.length*2*1000);
-    console.log(indicators[exchange_str]["NEARUSDT"]["1"]['TIENRSI'].periods[0])
+    // exchange_str = "BYBIT"
+    // timeframe_str = '1'
+    // symbols.forEach(async symbol_str => {
+    //     await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
+    // });
+    // await delay(symbols.length*2*1000);
+    // console.log(indicators[exchange_str]["NEARUSDT"]["1"]['TIENRSI'].periods[0])
 
-    symbols.forEach(symbol_str => {
-        const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str])
-        systems.push(system);
-    });
+    // symbols.forEach(symbol_str => {
+    //     const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str])
+    //     systems.push(system);
+    // });
 
-    systems.forEach(system=> system.start());
+    // systems.forEach(system=> system.start());
 
 
-    // const symbol = 'MATICUSDT'
-    // const amount = 135.5
-    // params = {
-    //     "category":"linear",
-    //     "side": "Buy",
-    //     "orderType": "Market",
-    // }
-    // const buy_order = await bybit.createMarketBuyOrderWithCost(symbol, amount, params)
-    // console.log(buy_order);
+    const symbol = ''
+    const amount = 135.5
+    params = {
+        "category":"linear",
+        "side": "Buy",
+        "orderType": "Market",
+    }
+    const buy_order = await bybit.createMarketBuyOrderWithCost(symbol, amount, params)
+    console.log(buy_order);
 
-    // await delay(15*1000);
+    await delay(15*1000);
 
-    // params = {
-    //     "category":"linear",
-    //     "side": "Sell",
-    //     "orderType": "Market"
-    // }
-    // const sell_order = await bybit.createMarketBuyOrderWithCost(symbol, amount, params)
-    // console.log(sell_order);
+    params = {
+        "category":"linear",
+        "side": "Sell",
+        "orderType": "Market"
+    }
+    const sell_order = await bybit.createMarketBuyOrderWithCost(symbol, amount, params)
+    console.log(sell_order);
 }
 
 main()
