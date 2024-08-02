@@ -13,7 +13,8 @@ const SEEK_SHORT = 6;
 
 module.exports = class SystemADXInverse {
 
-    constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, resume_path) {
+    constructor(parent, exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, resume_path) {
+        this.parent = parent;
         this.exchange_str = exchange_str;
         this.exchange = exchange;
         this.chart = chart;

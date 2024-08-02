@@ -13,7 +13,8 @@ const SEEK_SHORT = 6;
 
 module.exports = class SystemADX {
 
-    constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, resume_path) {
+    constructor(parent, exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, resume_path) {
+        this.parent = parent;
         this.exchange_str = exchange_str;
         this.exchange = exchange;
         this.chart = chart;
@@ -35,6 +36,7 @@ module.exports = class SystemADX {
         this.position = null;
         this.price = 0;
         this.qty = 0;
+        this.pnl = 0;
         this.usdt = 50000;
 
         this.options = this.options || {};
@@ -103,6 +105,7 @@ module.exports = class SystemADX {
             this.position = data.position;
             this.qty = data.qty;
             this.price = data.price;
+            this.pnl = data.pnl;
             this.usdt = data.usdt;
             this.buffer.chart.periods = data.buffer.chart.periods;
             this.buffer.indicators['TIENEMA'].periods = data.buffer.indicators['TIENEMA'].periods
@@ -129,6 +132,7 @@ module.exports = class SystemADX {
         data.position = this.position;
         data.qty = this.qty;
         data.price = this.price;
+        data.pnl = this.pnl;
         data.usdt = this.usdt;
         data.buffer = {};
         data.buffer.chart = {};
@@ -589,6 +593,8 @@ module.exports = class SystemADX {
     async liquidlong() {
         const qty = this.qty;
         const price = this.price;
+        periods = this.buffer.chart.periods;
+        this.pnl += (periods[0].close - price) * qty;
         const params = {
             "category": "linear",
             "side": "Sell",
@@ -612,6 +618,7 @@ module.exports = class SystemADX {
     async liquidhaftlong() {
         const qty = this.round(this.qty / 2);
         const price = this.price;
+        this.pnl += (periods[0].close - price) * qty;
         const params = {
             "category": "linear",
             "side": "Sell",
@@ -659,6 +666,7 @@ module.exports = class SystemADX {
     async liquidshort() {
         const qty = this.qty;
         const price = this.price;
+        this.pnl += (price - periods[0].close) * qty;
         const params = {
             "category": "linear",
             "side": "Buy",
@@ -682,6 +690,7 @@ module.exports = class SystemADX {
     async liquidhaftshort() {
         const qty = this.round(this.qty / 2);
         const price = this.price;
+        this.pnl += (price - periods[0].close) * qty;
         const params = {
             "category": "linear",
             "side": "Buy",
@@ -731,6 +740,9 @@ module.exports = class SystemADX {
         this.buffer.breakEven = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
+        this.buffer.history.append(this.pnl);
+        this.pnl = 0;
+        this.parent.change_algorithm();
     }
 
     afterLiquidShort() {
@@ -740,6 +752,9 @@ module.exports = class SystemADX {
         this.buffer.breakEven = false;
         this.buffer.profitPrice = -1;
         this.buffer.profitPercentage = -1;
+        this.buffer.history.append(this.pnl);
+        this.pnl = 0;
+        this.parent.change_algorithm();
     }
 
     round(number) {

@@ -104,6 +104,9 @@ async function main() {
     });
 
     systems.forEach(system => system.resume());
+
+    // watch and change if needed
+    
 }
 
 main()
