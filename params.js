@@ -24,7 +24,7 @@ const pairs = [
     { symbol: 'MATICUSDT', mode: 'normal' },
     { symbol: 'TRXUSDT', mode: 'normal' },
     { symbol: 'WLDUSDT', mode: 'normal' },
-    { symbol: 'RNDRUSDT', mode: 'normal' },
+    // { symbol: 'RNDRUSDT', mode: 'normal' },
     { symbol: 'OPUSDT', mode: 'normal' },
     { symbol: 'ETCUSDT', mode: 'normal' },
     { symbol: 'TONUSDT', mode: 'inverse' },
