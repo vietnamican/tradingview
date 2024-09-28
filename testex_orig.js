@@ -8,12 +8,12 @@ const System = require("./Systems/SystemADX.js");
  * This example creates a BTCEUR daily chart
  */
 const config = {
-    "tvsessionid": "fiob6mu4x5kgv5fs9q4wg1ecx3p2we8a",
-    "tvsession_signature": "v2:+gmH/6w69h3uhb2unzMH6N4rp9gffm0TtQ2Yr8eBjjg=",
+    "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
+    "tvsession_signature": "v2:QXLsqREIzx8YETlWLN/nydbDRIPKa07VALvP6tU53Sg=",
     "binanceapikey": "c8f19afe063d9ada608ad3c4f72ed0275397932ab01c098867b786d4267f7841",
     "binancesecret": "d2bb0fc9615325725498d98985867fa6d524ddfae8a12d4db3064155fc4e8786",
-    "bybitapikey": "IWBxUtijPL9f8Lq0eT",
-    "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
+    "bybitapikey": "45hfTYQMkjzeUDd7A0",
+    "bybitsecret": "VSIypoUtGbSWkGampXslwYaTDictVrWEdgS9"
 }
 
 const symbols = [
@@ -117,7 +117,7 @@ async function main() {
     // systems.forEach(system=> system.start());
 
 
-    const symbol = ''
+    const symbol = 'NEARUSDT'
     const amount = 135.5
     params = {
         "category":"linear",
