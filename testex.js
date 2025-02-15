@@ -1,52 +1,63 @@
 const TradingView = require('@mathieuc/tradingview');
+const { RestClientV5 } = require('bybit-api');
 const ccxt = require("ccxt");
 const System = require("./Systems/System15m");
 
-const config = {
-    "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
-    "tvsession_signature": "v2:QXLsqREIzx8YETlWLN/nydbDRIPKa07VALvP6tU53Sg=",
-    "binanceapikey": "c8f19afe063d9ada608ad3c4f72ed0275397932ab01c098867b786d4267f7841",
-    "binancesecret": "d2bb0fc9615325725498d98985867fa6d524ddfae8a12d4db3064155fc4e8786",
-    "bybitapikey": "IWBxUtijPL9f8Lq0eT",
-    "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
-}
+const { symbols, modes, config} = require("./params.js")
 
-const symbols = [
-    "NEARUSDT", 
-    "AVAXUSDT", 
-    "GRTUSDT", 
-    "RNDRUSDT", 
-    "AGIXUSDT",
-    "ARUSDT", 
-    "BOMEUSDT", 
-    "LINKUSDT", 
-    "MATICUSDT", 
-    "OMNIUSDT", 
-    "OPUSDT", 
-    "SSVUSDT", 
-    "WLDUSDT",
-    "SOLUSDT",
-    "BTCUSDT",
-    "ETHUSDT",
-    "ETHFIUSDT",
-    "ENAUSDT",
-    "WIFUSDT",
-    "LTCUSDT",
-    "BCHUSDT",
-    "TRXUSDT",
-    "ADAUSDT",
-    "DOGEUSDT",
-    "PYTHUSDT",
-    "MEWUSDT",
-    "ARBUSDT",
-    "UNIUSDT",
-    "ICPUSDT",
-    "THETAUSDT",
-    "UMAUSDT",
-    "FRONTUSDT",
-    "PEOPLEUSDT",
-    "MOVRUSDT",
-];
+const bybitClient = new RestClientV5({
+    // testnet: false,
+    demoTrading: true,
+    key: config['bybitapikeyspot'],
+    secret: config['bybitsecretspot'],
+});
+
+// const config = {
+//     "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
+//     "tvsession_signature": "v2:QXLsqREIzx8YETlWLN/nydbDRIPKa07VALvP6tU53Sg=",
+//     "binanceapikey": "c8f19afe063d9ada608ad3c4f72ed0275397932ab01c098867b786d4267f7841",
+//     "binancesecret": "d2bb0fc9615325725498d98985867fa6d524ddfae8a12d4db3064155fc4e8786",
+//     "bybitapikey": "IWBxUtijPL9f8Lq0eT",
+//     "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
+// }
+
+// const symbols = [
+//     "BTCUSDT"
+//     // "NEARUSDT", 
+//     // "AVAXUSDT", 
+//     // "GRTUSDT", 
+//     // "RNDRUSDT", 
+//     // "AGIXUSDT",
+//     // "ARUSDT", 
+//     // "BOMEUSDT", 
+//     // "LINKUSDT", 
+//     // "MATICUSDT", 
+//     // "OMNIUSDT", 
+//     // "OPUSDT", 
+//     // "SSVUSDT", 
+//     // "WLDUSDT",
+//     // "SOLUSDT",
+//     // "BTCUSDT",
+//     // "ETHUSDT",
+//     // "ETHFIUSDT",
+//     // "ENAUSDT",
+//     // "WIFUSDT",
+//     // "LTCUSDT",
+//     // "BCHUSDT",
+//     // "TRXUSDT",
+//     // "ADAUSDT",
+//     // "DOGEUSDT",
+//     // "PYTHUSDT",
+//     // "MEWUSDT",
+//     // "ARBUSDT",
+//     // "UNIUSDT",
+//     // "ICPUSDT",
+//     // "THETAUSDT",
+//     // "UMAUSDT",
+//     // "FRONTUSDT",
+//     // "PEOPLEUSDT",
+//     // "MOVRUSDT",
+// ];
 
 // const symbols = ["NEARUSDT",  "AVAXUSDT"];
 
@@ -109,32 +120,33 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
 
 async function main() {
     delay = await loadDelay();
-    const tvclient = await loadTradingViewClient(config);
-    // console.log(tvclient);
+    // const tvclient = await loadTradingViewClient(config);
+    // // console.log(tvclient);
 
-    const bybit = await loadBybitTrading(config);
+    // const bybit = await loadBybitTrading(config);
+    await delay(5000);
     // console.log(bybit);
 
 
-    exchange_str = "BYBIT"
-    timeframe_str = '15'
-    symbols.forEach(async symbol_str => {
-        await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
-    });
-    // await delay(5000);
-    await delay(symbols.length*1*1000);
+    // exchange_str = "BYBIT"
+    // timeframe_str = '15'
+    // symbols.forEach(async symbol_str => {
+    //     await loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str);
+    // });
+    // // await delay(5000);
+    // await delay(symbols.length*1*1000);
 
-    symbols.forEach(symbol_str => {
-        const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str])
-        systems.push(system);
-    });
+    // symbols.forEach(symbol_str => {
+    //     const system = new System(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str])
+    //     systems.push(system);
+    // });
 
-    systems.forEach(system=> system.start());
+    // systems.forEach(system=> system.start());
 
-    // const mk = await bybit.fetchMarkets(category="linear", symbol="DOGEUSDT");
+    // const mk = await bybit.fetchMarkets(category="linear", symbol="BTCUSDT");
     // console.log(mk);
-    // const symbol = 'DOGEUSDT'
-    // const amount = 135.5
+    // const symbol = 'BTCUSDT'
+    // const amount = 0.01
     // params = {
     //     "category":"linear",
     //     "side": "Buy",
@@ -152,6 +164,79 @@ async function main() {
     // }
     // const sell_order = await bybit.createMarketBuyOrderWithCost(symbol, amount, params)
     // console.log(sell_order);
+
+
+    // // Spot
+    const symbol = 'BTCUSDT'
+    const type = "market";
+    const side = "buy";
+    const amount = 500 // 500 USDT
+    await bybitClient.submitOrder({
+        category: 'spot',
+        symbol: 'BTCUSDT',
+        side: 'Buy',
+        orderType: 'Market',
+        marketUnit: "quoteCoin",
+        qty: '500',
+
+    })
+    .then((response) => {
+        console.log('Market order result', response);
+    })
+    .catch((error) => {
+    console.error('Market order error', error);
+    });
+    
+    await delay(5000);
+
+    let balance = -1;
+    let usdtbalance = -1
+    await bybitClient.getWalletBalance({
+        accountType: 'UNIFIED',
+        coin: 'BTC',
+    })
+    .then((response) => {
+        console.log(response);
+        // console.log(response["result"])
+        console.log(response["result"]["list"][0]["coin"])
+        balance = String(roundTo(response["result"]["list"][0]["coin"][0]["walletBalance"] * 1.0, 6))
+        console.log(response["result"]["list"][0]["coin"][0]["usdValue"])
+        usdtbalance = (response["result"]["list"][0]["coin"][0]["usdValue"] * 0.98).toFixed(2)
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+    await delay(5000);
+    console.log(usdtbalance);
+
+    await bybitClient.submitOrder({
+        category: 'spot',
+        symbol: 'BTCUSDT',
+        side: 'Sell',
+        orderType: 'Market',
+        // marketUnit: "quoteCoin",
+        // qty: usdtbalance,
+        marketUnit: "baseCoin",
+        qty: balance,
+
+    })
+    .then((response) => {
+        console.log('Market order result', response);
+    })
+    .catch((error) => {
+    console.error('Market order error', error);
+    });
+
+}
+
+function roundTo(n, digits) {
+    if (digits === undefined) {
+        digits = 0;
+    }
+
+    var multiplicator = Math.pow(10, digits);
+    n = parseFloat((n * multiplicator).toFixed(11));
+    return Math.floor(n) / multiplicator;
 }
 
 main()

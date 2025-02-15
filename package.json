@@ -2,6 +2,7 @@
   "dependencies": {
     "@mathieuc/tradingview": "github:Mathieu2301/TradingView-API",
     "asciichart": "^1.5.25",
+    "bybit-api": "^3.10.33",
     "ccxt": "^4.3.18",
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",

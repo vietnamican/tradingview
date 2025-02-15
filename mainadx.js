@@ -71,7 +71,7 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
             console.log(`[${moment().format()}] Indicator ${indic.name} for ${exchange_str}:${symbol_str} got error: ${err}`);
         })
     });
-    await delay(2000);
+    await delay(5000);
 }
 
 async function main() {

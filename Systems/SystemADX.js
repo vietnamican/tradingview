@@ -38,15 +38,15 @@ module.exports = class SystemADX {
         this.usdt = 50000;
 
         this.options = this.options || {};
-        this.options.slRatio = 0.012;
+        this.options.slRatio = 0.04;
         // this.options.tpRatios = [0.01, 0.015, 0.018, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.085, 0.09, 0.1, 0.15, 0.2];
-        this.options.tpRatio = 0.01;
+        this.options.tpRatio = 0.1;
         this.options.tpTrailingRatio = 0.01;
         // this.options.cancelSlRatio = 0.004;
         // this.options.cancelTpRatio = 0.004;
-        this.options.noProfitTriggerRatio = 0.01;
-        this.options.noProfitStopRatio = 0.0075;
-        this.options.breakEvenRatio = 0.01;
+        this.options.noProfitTriggerRatio = 0.04;
+        this.options.noProfitStopRatio = 0.03;
+        this.options.breakEvenRatio = 0.04;
         this.buffer = {};
         this.buffer.tpIndex = 0;
         this.buffer.seekingTrailing = false;
@@ -76,8 +76,8 @@ module.exports = class SystemADX {
 
             if (chart.periods[0].time != this.lasttime) {
                 this.lasttime = chart.periods[0].time
-                const periods = this.buffer.chart.periods;
-                console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${periods[0].time} Open:${periods[0].open} High:${periods[0].max} Low:${periods[0].min} Close:${periods[0].close} Volume:${periods[0].volume}`);
+                this.logPrice();
+                this.logIndicators();
                 this.onClose();
                 this.backup();
             } else {
@@ -87,6 +87,29 @@ module.exports = class SystemADX {
                 this.onUpdate();
             }
         });
+    }
+
+    logPrice() {
+        const periods = this.buffer.chart.periods;
+        console.log(`[${moment().format()}] ${this.exchange_str}:${this.symbol_str} Time:${periods[0].time} Open:${periods[0].open} High:${periods[0].max} Low:${periods[0].min} Close:${periods[0].close} Volume:${periods[0].volume}`);
+    }
+    
+    logIndicators() {
+        const ema = this.buffer.indicators['TIENEMA'].periods[0]
+        const e5 = ema['5'];
+        const e10 = ema['10'];
+        const e20 = ema['20'];
+        const e50 = ema['50'];
+        const e200 = ema['200'];
+        const e5_2 = ema['5_2'];
+        const e10_2 = ema['10_2'];
+        const e20_2 = ema['20_2'];
+        const e50_2 = ema['50_2'];
+        const e200_2 = ema['200_2'];
+        console.log(`e5: ${e5}, e10: ${e10}, e20: ${e20}, e50: ${e50}, e200: ${e200}`)
+        console.log(`e5_2: ${e5_2}, e10_2: ${e10_2}, e20_2: ${e20_2}, e50_2: ${e50_2}, e200_2: ${e200_2}`)
+        const adxs = this.buffer.indicators['TIENADX'].periods
+        console.log(`a0: ${adxs[0]["ADX"]}, a1: ${adxs[1]["ADX"]}, a2: ${adxs[2]["ADX"]}, a3: ${adxs[3]["ADX"]}`)
     }
 
     resume() {
@@ -563,7 +586,7 @@ module.exports = class SystemADX {
     }
 
     async long() {
-        const amount = 1000; // 100 USDT
+        const amount = 10000; // 1000 USDT
         const price = this.chart.periods[0].close;
         const qty = this.round(amount / price);
         const params = {
@@ -633,7 +656,7 @@ module.exports = class SystemADX {
     }
 
     async short() {
-        const amount = 1000; // 100 USDT
+        const amount = 10000; // 1000 USDT
         const price = this.chart.periods[0].close;
         const qty = this.round(amount / price);
         const params = {

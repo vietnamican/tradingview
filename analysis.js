@@ -2,15 +2,16 @@ const ccxt = require("ccxt");
 const moment = require("moment");
 const { range } = require("./utils");
 const asciichart = require('asciichart');
+const {config} = require("./params.js")
 
-const config = {
-    "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
-    "tvsession_signature": "v2:QXLsqREIzx8YETlWLN/nydbDRIPKa07VALvP6tU53Sg=",
-    "binanceapikey": "c8f19afe063d9ada608ad3c4f72ed0275397932ab01c098867b786d4267f7841",
-    "binancesecret": "d2bb0fc9615325725498d98985867fa6d524ddfae8a12d4db3064155fc4e8786",
-    "bybitapikey": "IWBxUtijPL9f8Lq0eT",
-    "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
-}
+//const config = {
+//    "tvsessionid": "zy3uyqjsxgoz0m6qc8ib5temuhn50whx",
+//    "tvsession_signature": "v2:QXLsqREIzx8YETlWLN/nydbDRIPKa07VALvP6tU53Sg=",
+//    "binanceapikey": "c8f19afe063d9ada608ad3c4f72ed0275397932ab01c098867b786d4267f7841",
+//    "binancesecret": "d2bb0fc9615325725498d98985867fa6d524ddfae8a12d4db3064155fc4e8786",
+//    "bybitapikey": "IWBxUtijPL9f8Lq0eT",
+//    "bybitsecret": "gGQLqDA473aXI9DUFQ9p0EDt6bwShnoQssCh"
+//}
 
 function sortObjectKeys(obj) {
     const entries = Object.entries(obj);
@@ -47,7 +48,10 @@ async function statistic() {
     // const starttimeFormatted = "2024-06-16T16:40+07:00";
     // const starttimeFormatted = "2024-06-25T15:00+07:00";
     // const starttimeFormatted = "2024-07-03T12:00+07:00";
-    const starttimeFormatted = "2024-07-16T15:00+07:00";
+    // const starttimeFormatted = "2024-07-16T15:00+07:00";
+    // const starttimeFormatted = "2024-10-01T00:00:00+07:00";
+    // const starttimeFormatted = "2024-11-20T21:52:00+07:00";
+    const starttimeFormatted = "2024-11-27T15:31:00+07:00";
     const endtimeFormatted = moment().format();
     const starttime = convertToEpochTime(starttimeFormatted);
     const endtime = convertToEpochTime(endtimeFormatted);
