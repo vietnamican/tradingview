@@ -3,7 +3,9 @@ const path = require('path');
 const TradingView = require('@mathieuc/tradingview');
 const { RestClientV5 } = require('bybit-api');
 // const ccxt = require("ccxt");
-const SystemQ1Q3 = require("./SystemsSpot/SystemQ1Q3");
+// const SystemQ1Q3 = require("./SystemsSpot/SystemQ1Q3");
+// const SystemRSIQ1Q3 = require("./SystemsSpot/SystemRSIQ1Q3");
+const SystemCombine = require("./SystemsSpot/SystemCombine");
 const { config, pairs, exchange_str, timeframe_str } = require("./params.js");
 
 async function loadDelay() {
@@ -35,7 +37,8 @@ const systems = [];
 
 async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str, timeframe_str) {
     const chart = new tvclient.Session.Chart();
-    chart.setMarket(`${exchange_str}:${symbol_str}.P`, {
+    // Fix chart to binance, spot 
+    chart.setMarket(`${exchange_str}:${symbol_str}`, {
         timeframe: timeframe_str,
     });
 
@@ -50,15 +53,16 @@ async function loadPrivateIndicators(config, tvclient, symbol_str, exchange_str,
     indicList = await TradingView.getPrivateIndicators(config.tvsessionid);
     await indicList.forEach(async (indic) => {
 
-        // // For Q1Q3 system
-        // if (indic.name === "TIENRSI" || indic.name == "TIENEMA"  || indic.name == "TIENADX") {
-        //     return;
-        // }
-
-        // For RSIQ1Q3 system
-        if (indic.name == "TIENEMA"  || indic.name == "TIENADX") {
+        list_indicator_names = ["Combine Indicator"]
+        // For Q1Q3 system
+        if (!list_indicator_names.includes(indic.name)) {
             return;
         }
+
+        // // For RSIQ1Q3 system
+        // if (indic.name == "TIENEMA"  || indic.name == "TIENADX") {
+        //     return;
+        // }
         
         const privateIndic = await indic.get();
         console.log(`Indicator ${indic.name} for ${exchange_str}:${symbol_str} loading...`)
@@ -100,7 +104,8 @@ async function main() {
     pairs.forEach(pair => {
         const symbol_str = pair['symbol']
         const resume_path = path.join(exchange_str, timeframe_str, symbol_str + ".txt");
-        const system = new SystemQ1Q3(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path);
+        const system = new SystemCombine(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path);
+        // const system = new SystemRSIQ1Q3(exchange_str, bybit, symbol_str, timeframe_str, charts[exchange_str][symbol_str][timeframe_str], indicators[exchange_str][symbol_str][timeframe_str], resume_path);
         systems.push(system);
     });
 

@@ -3,13 +3,9 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require('path');
 
-const STAND = 0;
-const QSIGNAL = 1;
 const COMBINE_INDIC_NAME = "Combine Indicator"
-const RSI_INDIC_NAME = "TIENRSI"
-const Q_INDIC_NAME = "Tien Q1 Q3 Breakout Strategy"
 
-module.exports = class SystemRSIQ1Q3 {
+module.exports = class Combine {
 
     constructor(exchange_str, exchange, symbol_str, timeframe_str, chart, indicators, resume_path) {
         this.exchange_str = exchange_str;
@@ -28,7 +24,6 @@ module.exports = class SystemRSIQ1Q3 {
         this.isFirst = true;
         this.lasttime = -1;
         this.not_haven_buy = true;
-        this.current_action = STAND;
         this.amount = 50000;
         this.portion_per_position = 0.16;
         this.totalcoin = 0;
@@ -95,7 +90,6 @@ module.exports = class SystemRSIQ1Q3 {
             this.not_haven_buy = data.not_haven_buy;
             this.basePrecision = data.basePrecision;
             this.quotePrecision = data.quotePrecision;
-            this.current_action = data.current_action;
             this.totalcoin = data.totalcoin;
             console.log(`[${moment().format()}] Restore from ${this.resume_path} done`);
         }
@@ -113,19 +107,24 @@ module.exports = class SystemRSIQ1Q3 {
         data.not_haven_buy = this.not_haven_buy;
         data.basePrecision = this.basePrecision;
         data.quotePrecision = this.quotePrecision;
-        data.current_action = this.current_action;
         data.totalcoin = this.totalcoin;
         fs.writeFileSync(this.resume_path, JSON.stringify(data));
     }
 
     onClose() {
-        switch(this.current_action) {
-            case STAND:
-                this.takePosition();
-                break
-            case QSIGNAL:
-                this.waitRSI();
-                break;
+        const indicator = this.indicators[COMBINE_INDIC_NAME].periods[0];
+        const buySignal = indicator["Buy"];
+        const sellSignal = indicator["Sell"];
+        if(buySignal) {
+            this.buy();
+            this.backup();
+        }
+        if(sellSignal) {
+            if (this.not_haven_buy) {
+                return;
+            }
+            this.sell();
+            this.backup();
         }
     }
 
@@ -135,68 +134,8 @@ module.exports = class SystemRSIQ1Q3 {
         // this.logIndicators();
     }
 
-    takePosition() {
-        const indicator = this.indicators[COMBINE_INDIC_NAME].periods[0];
-        const buySignal = indicator["Buy"];
-        const sellSignal = indicator["Sell"];
-
-        if(buySignal){
-            this.current_action = QSIGNAL;
-            this.backup();
-            return;
-        }
-
-        //TODO write on another function
-        if(sellSignal){
-            // console.log(this.not_haven_buy);
-            if(this.not_haven_buy){
-                return;
-            }
-            this.sell();
-            this.backup();
-            return;
-        }
-    }
-
-    waitRSI() {
-        // recursive or break if meet buy or sell signal
-        const qIndic = this.indicators[COMBINE_INDIC_NAME].periods[0];
-        const buySignal = qIndic["Buy"];
-        const sellSignal = qIndic["Sell"];
-        const q1 = qIndic["Q1"];
-        const q3 = qIndic["Q3"];
-        if (buySignal) {
-            this.backup();
-            return;
-        }
-        if (sellSignal) {
-            this.current_action = STAND;
-            this.backup();
-            return;
-        }
-        
-        // how to wait for one candle: change to stand action immediately if not buy
-        const closePrice = this.chart.periods[0].close;
-        const closeCondition = closePrice > q1 && closePrice < q3;
-
-        const rsiIndic = this.indicators[RSI_INDIC_NAME].periods[0];
-        const rsi = rsiIndic["RSI"];
-        const fastMa = rsiIndic["RSIbased_MA"];
-        const slowMa = rsiIndic["RSIbased_MA_2"];
-        const rsiCondition = rsi > fastMa || rsi > slowMa;
-
-        const condition = rsiCondition && closeCondition;
-        if (condition) {
-            this.buy();
-            this.backup();
-        }
-        
-        this.current_action = STAND;
-        this.backup();
-    }
-
     async buy() {
-        const amount = Math.floor(this.amount * this.portion_per_position);
+        const amount = Math.floor(this.amount * this.portion_per_position); // 500 USDT
 
         this.call(() => {
             return this.exchange.submitOrder({
@@ -209,9 +148,12 @@ module.exports = class SystemRSIQ1Q3 {
                     })
         })
         .then((response) => {
-            console.log(`Buy successfully ${amount}USDT for ${this.symbol_str} with market price`);
-            this.not_haven_buy = false;
-            this.totalcoin += amount;
+            //TODO check status successful or failed
+            if (response.retCode == 0){
+                console.log(`Buy successfully ${amount}USDT for ${this.symbol_str} with market price`);
+                this.not_haven_buy = false;
+                this.totalcoin += amount;
+            }
             this.backup();
         })
         .catch(error => {
@@ -229,6 +171,7 @@ module.exports = class SystemRSIQ1Q3 {
                 })
         })
         .then((response) => {
+            //TODO check status successful or failed
             this.balance = String(this.floor(response["result"]["list"][0]["coin"][0]["walletBalance"] * 1.0, this.basePrecision));
             this.usdtbalance = String(this.floor(response["result"]["list"][0]["coin"][0]["usdValue"] * 0.98, this.quotePrecision));
             this.backup();
@@ -257,9 +200,11 @@ module.exports = class SystemRSIQ1Q3 {
                 })
             })
             .then((response) => {
-                console.log(`Sell all ${this.balance}USDT for ${this.symbol_str} with market price`);
-                this.not_haven_buy = true;
-                this.totalcoin = 0;
+                if(response.retCode == 0){    
+                    console.log(`Sell all ${this.balance}USDT for ${this.symbol_str} with market price`);
+                    this.not_haven_buy = true;
+                    this.totalcoin = 0;
+                }
                 this.backup();
             })
             .catch(error => {

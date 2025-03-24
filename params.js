@@ -40,7 +40,7 @@ const pairs = [
 ]
 
 
-exchange_str = "BYBIT";
+exchange_str = "BINANCE";
 
 timeframe_str = '15';
 
