@@ -71,6 +71,7 @@ module.exports = class Combine {
                 this.lasttime = chart.periods[0].time
                 this.logPrice();
                 this.logIndicators();
+                this.logPositions();
                 this.onClose();
                 this.backup();
             } else {
@@ -87,6 +88,18 @@ module.exports = class Combine {
     logIndicators() {
         const indicator = this.indicators[COMBINE_INDIC_NAME].periods[0];
         console.log(`[${moment().format()}] [${moment(indicator["$time"]*1000).format()}] Buy: ${indicator["Buy"]} Sell: ${indicator["Sell"]} Q1: ${indicator["Q1"]} Q3: ${indicator["Q3"]}`);
+    }
+
+    logPositions() {
+        if (this.positions.length == 0) {
+            console.log(`[${moment().format()}] No positions`);
+            return;
+        } else {
+            console.log(`[${moment().format()}] Positions:`);
+        }
+        for (let i = 0; i < this.positions.length; i++) {
+            console.log(`Position ${i}: ${this.positions[i].amount} ${this.symbol_str} at ${this.positions[i].price}`);
+        }
     }
 
     resume() {
@@ -207,12 +220,13 @@ module.exports = class Combine {
             const position = this.positions[i];
             const profitCondition = this.chart.periods[0].close > position.price * 1.01;
             if(profitCondition) {
-                qty = this.floor(position.amount, this.basePrecision);
+                let qty = Math.min(this.floor(position.amount, this.basePrecision), this.floor(this.balance, this.basePrecision));
                 if (qty == 0) {
                     console.log(`Sold all ${this.symbol_str} with market price`);
                     return;
                 }
                 qty = String(qty);
+                console.log(`Sell ${qty} ${this.symbol_str} with market price`);
                 this.call(() => { 
                     return this.exchange.submitOrder({
                         category: 'spot',
@@ -225,13 +239,13 @@ module.exports = class Combine {
                 })
                 .then((response) => {
                     if(response.retCode == 0){    
-                        console.log(`Sell all ${this.balance}USDT for ${this.symbol_str} with market price`);
+                        console.log(`Sold ${qty} ${this.symbol_str} with market price`);
                         this.positions = this.positions.filter(p => p.id !== position.id);
                     }
                     this.backup();
                 })
                 .catch(error => {
-                    console.log(`Error occured when sell all ${this.balance} for ${this.symbol_str} with market price`);
+                    console.log(`Error occured when sell ${qty} ${this.symbol_str} with market price`);
                     console.error('Error:', error);
                     this.backup();
                 });

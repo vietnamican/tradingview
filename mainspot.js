@@ -5,7 +5,8 @@ const { RestClientV5 } = require('bybit-api');
 // const ccxt = require("ccxt");
 // const SystemQ1Q3 = require("./SystemsSpot/SystemQ1Q3");
 // const SystemRSIQ1Q3 = require("./SystemsSpot/SystemRSIQ1Q3");
-const SystemCombine = require("./SystemsSpot/SystemCombine");
+// const SystemCombine = require("./SystemsSpot/SystemCombine");
+const SystemCombine = require("./SystemsSpot/SystemCombineStateful");
 const { config, pairs, exchange_str, timeframe_str } = require("./params.js");
 
 async function loadDelay() {
